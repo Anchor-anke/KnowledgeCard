@@ -1,0 +1,7 @@
+<view class="page index-page">
+  <view class="brand-mark">KC</view>
+  <text class="title">CAPM 知识卡</text>
+  <text class="muted">短卡片学习，间隔复习巩固记忆</text>
+  <view class="loading" wx:if="{{loading}}">正在加载学习档案…</view>
+</view>
+

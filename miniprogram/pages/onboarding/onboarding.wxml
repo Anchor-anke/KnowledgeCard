@@ -1,0 +1,28 @@
+<view class="page onboarding-page">
+  <view class="hero card-panel">
+    <text class="eyebrow">30 秒开始一次学习</text>
+    <text class="heading">短卡片 + 间隔复习</text>
+    <text class="muted description">每张卡只讲清一个知识点。完成卡片后告诉系统你的记忆程度，系统会安排下一次复习。</text>
+  </view>
+
+  <view class="card-panel guide-panel">
+    <text class="section-title">三档记忆自评</text>
+    <view class="rating-guide">
+      <text class="rating-forgot">忘了</text>
+      <text class="muted">无法回忆核心内容</text>
+    </view>
+    <view class="rating-guide">
+      <text class="rating-vague">模糊</text>
+      <text class="muted">能想起部分内容，但不稳定</text>
+    </view>
+    <view class="rating-guide">
+      <text class="rating-remembered">记住了</text>
+      <text class="muted">能够较完整地回忆核心内容</text>
+    </view>
+  </view>
+
+  <button class="primary-button" bindtap="start" loading="{{submitting}}">
+    确认 CAPM 学习目标
+  </button>
+</view>
+

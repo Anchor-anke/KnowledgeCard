@@ -1,0 +1,30 @@
+.index-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-mark {
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 36rpx;
+  background: #1976d2;
+  color: #ffffff;
+  font-size: 44rpx;
+  line-height: 132rpx;
+  text-align: center;
+  font-weight: 700;
+}
+
+.title {
+  margin-top: 36rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.loading {
+  margin-top: 80rpx;
+  color: #627d98;
+}
+

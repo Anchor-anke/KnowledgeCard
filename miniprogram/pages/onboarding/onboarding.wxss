@@ -1,0 +1,63 @@
+.onboarding-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  margin-top: 80rpx;
+}
+
+.eyebrow {
+  color: #1976d2;
+  font-size: 26rpx;
+}
+
+.heading {
+  display: block;
+  margin-top: 20rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.description {
+  display: block;
+  margin-top: 24rpx;
+  line-height: 1.7;
+}
+
+.guide-panel {
+  margin-top: 28rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.rating-guide {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 24rpx;
+  font-size: 26rpx;
+}
+
+.rating-forgot,
+.rating-vague,
+.rating-remembered {
+  width: 120rpx;
+  font-weight: 700;
+}
+
+.rating-forgot {
+  color: #c53030;
+}
+
+.rating-vague {
+  color: #b7791f;
+}
+
+.rating-remembered {
+  color: #2f855a;
+}
+

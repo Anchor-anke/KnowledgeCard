@@ -1,0 +1,32 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/onboarding/onboarding",
+    "pages/study/study",
+    "pages/settings/settings"
+  ],
+  "window": {
+    "navigationBarTitleText": "CAPM 知识卡",
+    "navigationBarBackgroundColor": "#102a43",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f4f7fb",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#829ab1",
+    "selectedColor": "#1976d2",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/study/study",
+        "text": "学习"
+      },
+      {
+        "pagePath": "pages/settings/settings",
+        "text": "设置"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}
+

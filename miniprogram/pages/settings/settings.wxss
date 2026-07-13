@@ -1,0 +1,65 @@
+.profile-panel {
+  margin-top: 28rpx;
+}
+
+.eyebrow {
+  display: block;
+  color: #1976d2;
+  font-size: 24rpx;
+}
+
+.goal {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 48rpx;
+  font-weight: 700;
+}
+
+.profile-panel .muted {
+  display: block;
+  margin-top: 16rpx;
+}
+
+.settings-panel {
+  margin-top: 28rpx;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100rpx;
+  border-bottom: 1rpx solid #e6eef5;
+}
+
+.setting-row:last-child {
+  border-bottom: 0;
+}
+
+.setting-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.setting-row .muted {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+}
+
+.danger-button {
+  margin-top: 20rpx;
+  border-radius: 18rpx;
+  background: #fff5f5;
+  color: #c53030;
+}
+
+.notice {
+  margin-top: 36rpx;
+  color: #829ab1;
+  font-size: 22rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+

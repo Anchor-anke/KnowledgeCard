@@ -1,0 +1,73 @@
+<view class="page study-page">
+  <view class="study-header">
+    <view>
+      <text class="eyebrow">{{mode === 'REVIEW' ? '到期复习' : '新卡学习'}}</text>
+      <text class="header-title">{{cards.length ? '一次掌握一个知识点' : '本次学习完成'}}</text>
+    </view>
+    <button class="settings-link" bindtap="openSettings">设置</button>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty-panel card-panel">
+    <text class="muted">正在加载学习任务…</text>
+  </view>
+
+  <block wx:elif="{{cards.length}}">
+    <view class="task-hint" wx:if="{{mode === 'REVIEW'}}">
+      待复习知识点：{{tasks.length}} 个。左右滑动表示模糊。
+    </view>
+    <view
+      class="card-viewport"
+      catchtouchstart="onTouchStart"
+      catchtouchend="onTouchEnd"
+    >
+      <view class="knowledge-card {{cardAnimation}}">
+        <view class="card-content">
+          <text class="card-index">{{current + 1}} / {{cards.length}}</text>
+          <text class="card-title">{{cards[current].title}}</text>
+          <view class="conclusion">
+            <text class="label">一句话结论</text>
+            <text class="conclusion-text">{{cards[current].conclusion}}</text>
+          </view>
+          <view class="content-section">
+            <text class="label">解释</text>
+            <text class="body-text">{{cards[current].explanation}}</text>
+          </view>
+          <view class="content-section">
+            <text class="label">例子</text>
+            <text class="body-text">{{cards[current].example}}</text>
+          </view>
+          <view class="recall-section">
+            <text class="label">回忆提示</text>
+            <text class="body-text">{{cards[current].recallPrompt}}</text>
+          </view>
+          <view class="source">
+            <text>来源：{{cards[current].source}}</text>
+            <text>版本：v{{cards[current].version}} · {{cards[current].sourceLocator}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="gesture-guide card-panel">
+      <text class="gesture-title">直接滑动完成操作</text>
+      <text class="gesture-line">左右滑动：标记为“模糊”，并安排 1 天后复习</text>
+      <text class="gesture-line">下往上滑：进入下一个知识点 · 上往下滑：返回上一个知识点</text>
+    </view>
+    <view class="explicit-rating">
+      <text class="muted">需要精确自评？</text>
+      <button class="explicit-forgot" data-rating="FORGOT" bindtap="submitExplicitRating" loading="{{submitting}}">忘了</button>
+      <button class="explicit-remembered" data-rating="REMEMBERED" bindtap="submitExplicitRating" loading="{{submitting}}">记住了</button>
+    </view>
+
+    <button class="feedback-button" bindtap="sendFeedback">发现内容问题</button>
+    <text class="feedback-text" wx:if="{{lastFeedback}}">{{lastFeedback}}</text>
+  </block>
+
+  <view wx:else class="empty-panel card-panel">
+    <text class="empty-title">暂时没有更多卡片</text>
+    <text class="muted">完成自评后，系统会在合适的时间安排复习。</text>
+    <button class="secondary-button" bindtap="loadEntry">重新加载</button>
+    <button class="secondary-button" bindtap="resetDemo">重置 Mock 数据</button>
+  </view>
+</view>
+

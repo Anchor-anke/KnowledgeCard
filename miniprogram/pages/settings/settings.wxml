@@ -1,0 +1,31 @@
+<view class="page settings-page">
+  <view class="card-panel profile-panel">
+    <text class="eyebrow">当前学习目标</text>
+    <text class="goal">CAPM</text>
+    <text class="muted">每日新卡 {{user.newCardLimit}} 张 · 每日复习 {{user.reviewLimit}} 个知识点</text>
+  </view>
+
+  <view class="card-panel settings-panel">
+    <view class="setting-row">
+      <view>
+        <text class="setting-title">订阅消息</text>
+        <text class="muted">验证授权状态不会阻断小程序内复习</text>
+      </view>
+      <switch checked="{{user.subscriptionAuthorized}}" bindchange="toggleSubscription" color="#1976d2" />
+    </view>
+    <view class="setting-row">
+      <view>
+        <text class="setting-title">每日提醒时间</text>
+        <text class="muted">{{user.reminderTime}}</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="secondary-button" bindtap="makeReviewDue">模拟产生到期复习</button>
+  <button class="danger-button" bindtap="resetDemo">重置 Mock 学习数据</button>
+
+  <view class="notice">
+    <text>当前为 Mock 验证模式，数据保存在微信开发者工具本地缓存中。</text>
+  </view>
+</view>
+

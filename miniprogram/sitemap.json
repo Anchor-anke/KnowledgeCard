@@ -1,0 +1,10 @@
+{
+  "desc": "CAPM 知识卡 Mock 验证",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}
+
