@@ -1,4 +1,5 @@
 const api = require('../../utils/mock-api')
+const { getNavMetrics, getStudyViewportHeight } = require('../../utils/layout')
 
 Page({
   data: {
@@ -16,6 +17,11 @@ Page({
     pendingRememberedCardIds: [],
     groupId: '',
     scrollTop: 0,
+    statusBarHeight: 20,
+    navBarHeight: 44,
+    navTotalHeight: 64,
+    menuSideGap: 96,
+    cardMinHeight: 384,
     cardContentMaxHeight: 480,
     cardViewportHeight: 480,
     cardAnimation: '',
@@ -28,12 +34,24 @@ Page({
 
   onLoad() {
     const app = getApp()
+    const nav = getNavMetrics()
     this.setData({
-      sessionId: app.globalData.sessionId
+      sessionId: app.globalData.sessionId,
+      statusBarHeight: nav.statusBarHeight,
+      navBarHeight: nav.navBarHeight,
+      navTotalHeight: nav.navTotalHeight,
+      menuSideGap: nav.menuSideGap
     })
     this.updateCardContentHeight()
     if (wx.onWindowResize) {
       this.windowResizeHandler = (result) => {
+        const nextNav = getNavMetrics()
+        this.setData({
+          statusBarHeight: nextNav.statusBarHeight,
+          navBarHeight: nextNav.navBarHeight,
+          navTotalHeight: nextNav.navTotalHeight,
+          menuSideGap: nextNav.menuSideGap
+        })
         this.updateCardContentHeight(result && result.size && result.size.windowHeight)
       }
       wx.onWindowResize(this.windowResizeHandler)
@@ -41,10 +59,15 @@ Page({
   },
 
   onShow() {
-    this.updateCardContentHeight()
+    const nav = getNavMetrics()
     this.setData({
+      statusBarHeight: nav.statusBarHeight,
+      navBarHeight: nav.navBarHeight,
+      navTotalHeight: nav.navTotalHeight,
+      menuSideGap: nav.menuSideGap,
       skippedPointIds: []
     }, () => {
+      this.updateCardContentHeight()
       this.loadEntry()
     })
   },
@@ -55,42 +78,46 @@ Page({
     }
   },
 
+  applyViewportHeight(cardTop, windowHeight) {
+    const result = getStudyViewportHeight({
+      navTotalHeight: this.data.navTotalHeight,
+      cardTop,
+      windowHeight
+    })
+    if (
+      result.availableHeight !== this.data.cardContentMaxHeight ||
+      result.availableHeight !== this.data.cardViewportHeight ||
+      result.minCardHeight !== this.data.cardMinHeight
+    ) {
+      this.setData({
+        cardMinHeight: result.minCardHeight,
+        cardContentMaxHeight: result.availableHeight,
+        cardViewportHeight: result.availableHeight
+      })
+    }
+  },
+
   updateCardContentHeight(windowHeight) {
-    const systemInfo = wx.getWindowInfo
-      ? wx.getWindowInfo()
-      : wx.getSystemInfoSync()
-    const height = windowHeight || systemInfo.windowHeight
-    const safeBottom = systemInfo.safeArea
-      ? Math.max(0, systemInfo.screenHeight - systemInfo.safeArea.bottom)
-      : 0
-    const applyHeight = (cardRect) => {
-      const cardTop = cardRect && typeof cardRect.top === 'number'
-        ? cardRect.top
-        : 190
-      const bottomPadding = Math.max(12, safeBottom)
-      const maxHeight = Math.max(
-        1,
-        Math.floor(height - cardTop - bottomPadding - 8)
-      )
-      if (
-        maxHeight !== this.data.cardContentMaxHeight ||
-        maxHeight !== this.data.cardViewportHeight
-      ) {
-        this.setData({
-          cardContentMaxHeight: maxHeight,
-          cardViewportHeight: maxHeight
-        })
+    const measure = () => {
+      if (!this.data.loading && this.data.cards.length) {
+        wx.createSelectorQuery()
+          .in(this)
+          .select('.card-viewport')
+          .boundingClientRect((rect) => {
+            this.applyViewportHeight(
+              rect && typeof rect.top === 'number' ? rect.top : null,
+              windowHeight
+            )
+          })
+          .exec()
+        return
       }
+      this.applyViewportHeight(null, windowHeight)
     }
 
-    if (!this.data.loading && this.data.cards.length) {
-      wx.createSelectorQuery()
-        .select('.card-viewport')
-        .boundingClientRect(applyHeight)
-        .exec()
-      return
-    }
-    applyHeight()
+    measure()
+    // Huawei layout often settles one frame later.
+    setTimeout(measure, 64)
   },
 
   loadEntry() {
@@ -359,4 +386,3 @@ Page({
     })
   }
 })
-

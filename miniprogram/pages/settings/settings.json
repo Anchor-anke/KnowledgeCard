@@ -1,4 +1,4 @@
 {
-  "navigationBarTitleText": "学习设置"
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black"
 }
-

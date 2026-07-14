@@ -1,4 +1,5 @@
 const api = require('../../utils/mock-api')
+const { getNavMetrics } = require('../../utils/layout')
 
 Page({
   data: {
@@ -9,6 +10,10 @@ Page({
     gestureResultType: '',
     touchStartX: 0,
     touchStartY: 0,
+    statusBarHeight: 20,
+    navBarHeight: 44,
+    navTotalHeight: 64,
+    menuSideGap: 96,
     steps: [
       {
         eyebrow: 'STEP 01',
@@ -39,6 +44,14 @@ Page({
         visualCaption: '间隔复习 · 长期记忆'
       }
     ]
+  },
+
+  onLoad() {
+    this.setData(getNavMetrics())
+  },
+
+  onShow() {
+    this.setData(getNavMetrics())
   },
 
   onTouchStart(event) {
@@ -119,4 +132,3 @@ Page({
     })
   }
 })
-

@@ -1,5 +1,4 @@
 {
-  "navigationBarTitleText": "学习卡流",
-  "usingComponents": {}
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black"
 }
-

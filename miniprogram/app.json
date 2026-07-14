@@ -20,15 +20,21 @@
     "list": [
       {
         "pagePath": "pages/library/library",
-        "text": "知识库"
+        "text": "知识库",
+        "iconPath": "assets/tabbar/library.png",
+        "selectedIconPath": "assets/tabbar/library-active.png"
       },
       {
         "pagePath": "pages/study/study",
-        "text": "学习"
+        "text": "学习",
+        "iconPath": "assets/tabbar/study.png",
+        "selectedIconPath": "assets/tabbar/study-active.png"
       },
       {
         "pagePath": "pages/settings/settings",
-        "text": "设置"
+        "text": "设置",
+        "iconPath": "assets/tabbar/settings.png",
+        "selectedIconPath": "assets/tabbar/settings-active.png"
       }
     ]
   },

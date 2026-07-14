@@ -752,43 +752,57 @@ const INITIAL_CARDS = [
   }
 ]
 
-const DECK_DEFINITIONS = [
+const COLLECTION_DEFINITIONS = [
   {
-    id: 'all',
-    title: 'CAPM 全部知识',
-    subtitle: '从基础概念到商业分析，完整掌握考试框架',
-    label: '完整课程',
-    matcher: () => true
-  },
-  {
-    id: 'foundations',
-    title: '项目管理基础',
-    subtitle: '项目、治理、角色与核心管理概念',
-    label: 'Domain 1',
-    matcher: (card) => card.sourceLocator.indexOf('Domain 1') === 0
-  },
-  {
-    id: 'predictive',
-    title: '预测型项目管理',
-    subtitle: '范围、进度、成本与传统项目管理方法',
-    label: 'Domain 2',
-    matcher: (card) => card.sourceLocator.indexOf('Domain 2') === 0
-  },
-  {
-    id: 'agile',
-    title: '敏捷与混合方法',
-    subtitle: '敏捷原则、迭代交付与混合型项目实践',
-    label: 'Domain 3',
-    matcher: (card) => card.sourceLocator.indexOf('Domain 3') === 0
-  },
-  {
-    id: 'business-analysis',
-    title: '商业分析',
-    subtitle: '需求、交付成果与项目价值实现',
-    label: 'Domain 4',
-    matcher: (card) => card.sourceLocator.indexOf('Domain 4') === 0
+    id: 'capm',
+    title: 'CAPM',
+    subtitle: '项目管理助理认证，覆盖基础到商业分析',
+    label: '考试认证',
+    coverMark: 'CAPM',
+    decks: [
+      {
+        id: 'capm-all',
+        title: '全部知识',
+        subtitle: '一次学习 CAPM 全部知识点',
+        label: '完整',
+        matcher: (card) => card.source.indexOf('CAPM') >= 0
+      },
+      {
+        id: 'foundations',
+        title: '项目管理基础',
+        subtitle: '项目、治理、角色与核心管理概念',
+        label: 'Domain 1',
+        matcher: (card) => card.sourceLocator.indexOf('Domain 1') === 0
+      },
+      {
+        id: 'predictive',
+        title: '预测型项目管理',
+        subtitle: '范围、进度、成本与传统项目管理方法',
+        label: 'Domain 2',
+        matcher: (card) => card.sourceLocator.indexOf('Domain 2') === 0
+      },
+      {
+        id: 'agile',
+        title: '敏捷与混合方法',
+        subtitle: '敏捷原则、迭代交付与混合型项目实践',
+        label: 'Domain 3',
+        matcher: (card) => card.sourceLocator.indexOf('Domain 3') === 0
+      },
+      {
+        id: 'business-analysis',
+        title: '商业分析',
+        subtitle: '需求、交付成果与项目价值实现',
+        label: 'Domain 4',
+        matcher: (card) => card.sourceLocator.indexOf('Domain 4') === 0
+      }
+    ]
   }
 ]
+
+const DECK_DEFINITIONS = COLLECTION_DEFINITIONS.reduce(
+  (list, collection) => list.concat(collection.decks),
+  []
+)
 
 function createInitialState() {
   return {
@@ -800,7 +814,7 @@ function createInitialState() {
       newCardLimit: 10,
       reviewLimit: 20,
       reminderTime: '20:00',
-      activeDeckId: 'all'
+      activeDeckId: 'capm-all'
     },
     cards: INITIAL_CARDS,
     plans: {},
@@ -841,11 +855,15 @@ function addDays(date, days) {
 }
 
 function getDeckDefinition(deckId) {
-  return DECK_DEFINITIONS.find((deck) => deck.id === deckId) || DECK_DEFINITIONS[0]
+  const normalizedId = deckId === 'all' ? 'capm-all' : deckId
+  return (
+    DECK_DEFINITIONS.find((deck) => deck.id === normalizedId) ||
+    DECK_DEFINITIONS[0]
+  )
 }
 
 function getCardsForDeck(state, deckId) {
-  const deck = getDeckDefinition(deckId || state.user.activeDeckId || 'all')
+  const deck = getDeckDefinition(deckId || state.user.activeDeckId || 'capm-all')
   return state.cards.filter((card) => deck.matcher(card))
 }
 
@@ -881,16 +899,30 @@ function getLearningStats(state) {
 
 function getLibrary() {
   const state = loadState()
-  const decks = DECK_DEFINITIONS.map((deck) => ({
-    id: deck.id,
-    title: deck.title,
-    subtitle: deck.subtitle,
-    label: deck.label,
-    stats: getStatsForCards(state, getCardsForDeck(state, deck.id))
-  }))
+  const activeDeckId = getDeckDefinition(state.user.activeDeckId || 'capm-all').id
+  const collections = COLLECTION_DEFINITIONS.map((collection) => {
+    const decks = collection.decks.map((deck) => ({
+      id: deck.id,
+      title: deck.title,
+      subtitle: deck.subtitle,
+      label: deck.label,
+      stats: getStatsForCards(state, getCardsForDeck(state, deck.id))
+    }))
+    const rootDeck = decks[0]
+    return {
+      id: collection.id,
+      title: collection.title,
+      subtitle: collection.subtitle,
+      label: collection.label,
+      coverMark: collection.coverMark,
+      stats: rootDeck ? rootDeck.stats : getStatsForCards(state, []),
+      decks,
+      hasActiveDeck: decks.some((deck) => deck.id === activeDeckId)
+    }
+  })
   return Promise.resolve({
-    activeDeckId: state.user.activeDeckId || 'all',
-    decks
+    activeDeckId,
+    collections
   })
 }
 

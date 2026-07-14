@@ -4,8 +4,10 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding-top: 72rpx;
+  padding-top: 0;
+  padding-right: 32rpx;
   padding-bottom: 56rpx;
+  padding-left: 32rpx;
   background: #f6f8fb;
 }
 
@@ -31,32 +33,24 @@
   background: rgba(246, 173, 85, 0.08);
 }
 
-.brand-lockup,
-.index-hero,
-.value-list,
-.index-footer {
-  position: relative;
-  z-index: 1;
-}
-
 .brand-lockup {
   display: flex;
   align-items: center;
-  gap: 20rpx;
+  gap: 16rpx;
+  min-width: 0;
 }
 
 .brand-mark {
-  width: 84rpx;
-  height: 84rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.22);
-  border-radius: 26rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 16rpx;
   background: #102a43;
   color: #ffffff;
-  font-size: 30rpx;
-  line-height: 84rpx;
+  font-size: 22rpx;
+  line-height: 56rpx;
   text-align: center;
   font-weight: 700;
-  letter-spacing: 2rpx;
+  letter-spacing: 1rpx;
 }
 
 .brand-name,
@@ -66,20 +60,39 @@
 
 .brand-name {
   color: #102a43;
-  font-size: 30rpx;
+  font-size: 26rpx;
   font-weight: 700;
   letter-spacing: 1rpx;
+  line-height: 1.2;
 }
 
 .brand-caption {
-  margin-top: 6rpx;
+  margin-top: 4rpx;
   color: #829ab1;
-  font-size: 17rpx;
-  letter-spacing: 3rpx;
+  font-size: 15rpx;
+  letter-spacing: 2rpx;
+  line-height: 1.2;
+}
+
+.index-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 0;
+}
+
+.index-hero,
+.value-list,
+.index-footer {
+  position: relative;
+  z-index: 1;
 }
 
 .index-hero {
-  margin-top: 150rpx;
+  margin-top: 72rpx;
 }
 
 .hero-eyebrow {
@@ -112,7 +125,7 @@
 }
 
 .value-list {
-  margin-top: 94rpx;
+  margin-top: 72rpx;
   padding: 28rpx 0;
   border-top: 1rpx solid #d9e2ec;
   border-bottom: 1rpx solid #d9e2ec;
@@ -201,4 +214,3 @@
   font-size: 21rpx;
   text-align: center;
 }
-

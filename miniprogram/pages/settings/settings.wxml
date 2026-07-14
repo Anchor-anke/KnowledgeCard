@@ -1,31 +1,113 @@
 <view class="page settings-page">
-  <view class="card-panel profile-panel">
-    <text class="eyebrow">当前学习目标</text>
-    <text class="goal">CAPM</text>
-    <text class="muted">每日新卡 {{user.newCardLimit}} 张 · 每日复习 {{user.reviewLimit}} 个知识点</text>
-  </view>
-
-  <view class="card-panel settings-panel">
-    <view class="setting-row">
-      <view>
-        <text class="setting-title">订阅消息</text>
-        <text class="muted">验证授权状态不会阻断小程序内复习</text>
-      </view>
-      <switch checked="{{user.subscriptionAuthorized}}" bindchange="toggleSubscription" color="#1976d2" />
-    </view>
-    <view class="setting-row">
-      <view>
-        <text class="setting-title">每日提醒时间</text>
-        <text class="muted">{{user.reminderTime}}</text>
+  <view class="custom-nav" style="height: {{navTotalHeight}}px;">
+    <view style="height: {{statusBarHeight}}px;"></view>
+    <view
+      class="custom-nav-bar"
+      style="height: {{navBarHeight}}px; padding-right: {{menuSideGap}}px;"
+    >
+      <view class="nav-title-wrap">
+        <text class="nav-eyebrow">SETTINGS</text>
+        <text class="nav-title">学习设置</text>
       </view>
     </view>
   </view>
 
-  <button class="secondary-button" bindtap="makeReviewDue">模拟产生到期复习</button>
-  <button class="danger-button" bindtap="resetDemo">重置 Mock 学习数据</button>
+  <view class="settings-body" style="padding-top: {{navTotalHeight}}px;">
+    <text class="muted settings-intro">按自己的节奏调整学习量与提醒。</text>
 
-  <view class="notice">
-    <text>当前为 Mock 验证模式，数据保存在微信开发者工具本地缓存中。</text>
+    <view class="card-panel profile-panel" bindtap="openLibrary">
+      <view class="profile-top">
+        <view>
+          <text class="eyebrow">正在学习</text>
+          <text class="goal">{{activeDeckTitle}}</text>
+        </view>
+        <text class="profile-action">更换 →</text>
+      </view>
+      <text class="muted">每日新卡 {{user.newCardLimit || 0}} 张 · 每日复习 {{user.reviewLimit || 0}} 个知识点</text>
+    </view>
+
+    <view class="card-panel settings-panel">
+      <text class="section-label">学习节奏</text>
+
+      <view class="setting-row">
+        <view>
+          <text class="setting-title">每日新卡</text>
+          <text class="muted">每天最多学习多少张新卡片</text>
+        </view>
+        <view class="limit-input-wrap">
+          <input
+            class="limit-input"
+            type="number"
+            value="{{newCardInput}}"
+            bindinput="onNewCardInput"
+            bindblur="saveNewCardLimit"
+            bindconfirm="saveNewCardLimit"
+          />
+          <text class="limit-unit">张</text>
+        </view>
+      </view>
+
+      <view class="setting-row">
+        <view>
+          <text class="setting-title">每日复习上限</text>
+          <text class="muted">每天最多复习多少个知识点</text>
+        </view>
+        <view class="limit-input-wrap">
+          <input
+            class="limit-input"
+            type="number"
+            value="{{reviewInput}}"
+            bindinput="onReviewInput"
+            bindblur="saveReviewLimit"
+            bindconfirm="saveReviewLimit"
+          />
+          <text class="limit-unit">个</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card-panel settings-panel">
+      <text class="section-label">复习提醒</text>
+
+      <view class="setting-row">
+        <view>
+          <text class="setting-title">开启提醒</text>
+          <text class="muted">到期复习时，通过微信提醒你</text>
+        </view>
+        <switch
+          checked="{{user.subscriptionAuthorized}}"
+          bindchange="toggleSubscription"
+          color="#1976d2"
+        />
+      </view>
+
+      <picker mode="time" value="{{user.reminderTime}}" bindchange="onReminderChange">
+        <view class="setting-row">
+          <view>
+            <text class="setting-title">提醒时间</text>
+            <text class="muted">建议选择你方便学习的时段</text>
+          </view>
+          <text class="setting-value">{{user.reminderTime}}</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="card-panel settings-panel">
+      <text class="section-label">关于</text>
+
+      <view class="setting-row" bindtap="sendFeedback">
+        <view>
+          <text class="setting-title">意见反馈</text>
+          <text class="muted">告诉我们哪里可以更好</text>
+        </view>
+        <text class="setting-value">›</text>
+      </view>
+
+      <view class="about-block">
+        <text class="about-name">KnowledgeCard</text>
+        <text class="muted">把长资料变成短卡片，用间隔复习记住真正重要的知识。</text>
+        <text class="privacy-note">你的学习资料与进度默认仅对自己可见。</text>
+      </view>
+    </view>
   </view>
 </view>
-

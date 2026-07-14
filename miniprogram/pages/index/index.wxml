@@ -2,46 +2,55 @@
   <view class="index-glow index-glow-one"></view>
   <view class="index-glow index-glow-two"></view>
 
-  <view class="brand-lockup">
-    <view class="brand-mark">KC</view>
-    <view>
-      <text class="brand-name">KnowledgeCard</text>
-      <text class="brand-caption">PERSONAL LEARNING</text>
-    </view>
-  </view>
-
-  <view class="index-hero">
-    <text class="hero-eyebrow">把长资料，变成会记住的知识</text>
-    <text class="title">每一次滑动，<text class="title-accent">都算数。</text></text>
-    <text class="hero-description">用短卡片理解重点，用间隔复习把知识留在脑海里。</text>
-  </view>
-
-  <view class="value-list">
-    <view class="value-item">
-      <text class="value-number">01</text>
-      <view>
-        <text class="value-title">一张卡，一个重点</text>
-        <text class="value-description">把复杂资料拆成轻松可读的知识卡</text>
-      </view>
-    </view>
-    <view class="value-item">
-      <text class="value-number">02</text>
-      <view>
-        <text class="value-title">复习有节奏</text>
-        <text class="value-description">在合适的时间重新遇见重要内容</text>
+  <view class="custom-nav" style="height: {{navTotalHeight}}px;">
+    <view style="height: {{statusBarHeight}}px;"></view>
+    <view
+      class="custom-nav-bar"
+      style="height: {{navBarHeight}}px; padding-right: {{menuSideGap}}px;"
+    >
+      <view class="brand-lockup">
+        <view class="brand-mark">KC</view>
+        <view>
+          <text class="brand-name">KnowledgeCard</text>
+          <text class="brand-caption">PERSONAL LEARNING</text>
+        </view>
       </view>
     </view>
   </view>
 
-  <view class="index-footer">
-    <view class="loading-placeholder" wx:if="{{loading}}">
-      <text>正在准备你的学习空间…</text>
+  <view class="index-body" style="padding-top: {{navTotalHeight}}px;">
+    <view class="index-hero">
+      <text class="hero-eyebrow">把长资料，变成会记住的知识</text>
+      <text class="title">每一次滑动，<text class="title-accent">都算数。</text></text>
+      <text class="hero-description">用短卡片理解重点，用间隔复习把知识留在脑海里。</text>
     </view>
-    <button class="index-start" wx:else bindtap="start">
-      <text>{{onboardingCompleted ? '继续学习' : '开始使用'}}</text>
-      <text class="button-arrow">→</text>
-    </button>
-    <text class="index-note">你的学习资料，始终只属于你</text>
+
+    <view class="value-list">
+      <view class="value-item">
+        <text class="value-number">01</text>
+        <view>
+          <text class="value-title">一张卡，一个重点</text>
+          <text class="value-description">把复杂资料拆成轻松可读的知识卡</text>
+        </view>
+      </view>
+      <view class="value-item">
+        <text class="value-number">02</text>
+        <view>
+          <text class="value-title">复习有节奏</text>
+          <text class="value-description">在合适的时间重新遇见重要内容</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="index-footer">
+      <view class="loading-placeholder" wx:if="{{loading}}">
+        <text>正在准备你的学习空间…</text>
+      </view>
+      <button class="index-start" wx:else bindtap="start">
+        <text>{{onboardingCompleted ? '继续学习' : '开始使用'}}</text>
+        <text class="button-arrow">→</text>
+      </button>
+      <text class="index-note">你的学习资料，始终只属于你</text>
+    </view>
   </view>
 </view>
-

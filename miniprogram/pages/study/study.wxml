@@ -1,74 +1,89 @@
 <view class="page study-page">
-  <view wx:if="{{loading}}" class="empty-panel card-panel">
-    <text class="muted">正在加载学习任务…</text>
-  </view>
-
-  <view wx:elif="{{groupCompleted}}" class="completion-panel card-panel">
-    <text class="completion-eyebrow">本组学习完成</text>
-    <text class="completion-title">这组知识点已经记下来了</text>
-    <text class="completion-summary">{{lastFeedback}}</text>
-    <button
-      class="primary-button completion-button"
-      bindtap="loadEntry"
-      loading="{{committing}}"
-      disabled="{{committing}}"
-    >继续学习</button>
-  </view>
-
-  <block wx:elif="{{cards.length}}">
+  <view class="custom-nav" style="height: {{navTotalHeight}}px;">
+    <view style="height: {{statusBarHeight}}px;"></view>
     <view
-      class="card-viewport"
-      catchtouchstart="onTouchStart"
-      catchtouchend="onTouchEnd"
-      style="height: {{cardViewportHeight}}px;"
+      class="custom-nav-bar"
+      style="height: {{navBarHeight}}px; padding-right: {{menuSideGap}}px;"
     >
-      <view class="knowledge-card {{cardAnimation}}">
-        <scroll-view
-          class="card-content"
-          scroll-y
-          scroll-top="{{scrollTop}}"
-          bindscroll="onCardScroll"
-          style="max-height: {{cardContentMaxHeight}}px;"
+      <view class="nav-title-wrap">
+        <text class="nav-eyebrow">STUDY</text>
+        <text class="nav-title">学习卡流</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="study-body" style="padding-top: {{navTotalHeight}}px;">
+    <view wx:if="{{loading}}" class="empty-panel card-panel">
+      <text class="muted">正在加载学习任务…</text>
+    </view>
+
+    <view wx:elif="{{groupCompleted}}" class="completion-panel card-panel">
+      <text class="completion-eyebrow">本组学习完成</text>
+      <text class="completion-title">这组知识点已经记下来了</text>
+      <text class="completion-summary">{{lastFeedback}}</text>
+      <button
+        class="primary-button completion-button"
+        bindtap="loadEntry"
+        loading="{{committing}}"
+        disabled="{{committing}}"
+      >继续学习</button>
+    </view>
+
+    <block wx:elif="{{cards.length}}">
+      <view
+        class="card-viewport"
+        catchtouchstart="onTouchStart"
+        catchtouchend="onTouchEnd"
+        style="height: {{cardViewportHeight}}px;"
+      >
+        <view
+          class="knowledge-card {{cardAnimation}}"
+          style="min-height: {{cardMinHeight}}px; max-height: {{cardContentMaxHeight}}px;"
         >
-          <view class="card-meta">
-            <text class="card-index">{{current + 1}} / {{cards.length}}</text>
-            <button class="feedback-button" bindtap="sendFeedback">反馈</button>
-          </view>
-          <text class="card-title">{{cards[current].title}}</text>
-          <view class="conclusion">
-            <text class="label">一句话结论</text>
-            <text class="conclusion-text">{{cards[current].conclusion}}</text>
-          </view>
-          <view class="content-section">
-            <text class="label">解释</text>
-            <text class="body-text">{{cards[current].explanation}}</text>
-          </view>
-          <view class="content-section">
-            <text class="label">例子</text>
-            <text class="body-text">{{cards[current].example}}</text>
-          </view>
-          <view class="recall-section">
-            <text class="label">回忆提示</text>
-            <text class="body-text">{{cards[current].recallPrompt}}</text>
-          </view>
+          <scroll-view
+            class="card-content"
+            scroll-y
+            scroll-top="{{scrollTop}}"
+            bindscroll="onCardScroll"
+          >
+            <view class="card-meta">
+              <text class="card-index">{{current + 1}} / {{cards.length}}</text>
+              <button class="feedback-button" bindtap="sendFeedback">反馈</button>
+            </view>
+            <text class="card-title">{{cards[current].title}}</text>
+            <view class="conclusion">
+              <text class="label">一句话结论</text>
+              <text class="conclusion-text">{{cards[current].conclusion}}</text>
+            </view>
+            <view class="content-section">
+              <text class="label">解释</text>
+              <text class="body-text">{{cards[current].explanation}}</text>
+            </view>
+            <view class="content-section">
+              <text class="label">例子</text>
+              <text class="body-text">{{cards[current].example}}</text>
+            </view>
+            <view class="recall-section">
+              <text class="label">回忆提示</text>
+              <text class="body-text">{{cards[current].recallPrompt}}</text>
+            </view>
+          </scroll-view>
           <view class="source">
             <text>来源：{{cards[current].source}} · v{{cards[current].version}} · {{cards[current].sourceLocator}}</text>
           </view>
-        </scroll-view>
+        </view>
+        <view class="gesture-hint">
+          <text>↑↓ 记住了</text>
+          <text>←→ 没记住</text>
+        </view>
       </view>
-      <view class="gesture-hint">
-        <text>↑↓ 记住了</text>
-        <text>←→ 没记住</text>
-      </view>
+    </block>
+
+    <view wx:else class="empty-panel card-panel">
+      <text class="empty-title">暂时没有更多卡片</text>
+      <text class="muted">完成自评后，系统会在合适的时间安排复习。</text>
+      <button class="secondary-button" bindtap="loadEntry">重新加载</button>
+      <button class="secondary-button" bindtap="resetDemo">重置 Mock 数据</button>
     </view>
-
-  </block>
-
-  <view wx:else class="empty-panel card-panel">
-    <text class="empty-title">暂时没有更多卡片</text>
-    <text class="muted">完成自评后，系统会在合适的时间安排复习。</text>
-    <button class="secondary-button" bindtap="loadEntry">重新加载</button>
-    <button class="secondary-button" bindtap="resetDemo">重置 Mock 数据</button>
   </view>
 </view>
-

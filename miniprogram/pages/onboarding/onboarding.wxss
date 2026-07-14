@@ -2,33 +2,60 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: 48rpx;
+  padding-top: 0;
+  padding-right: 32rpx;
   padding-bottom: 52rpx;
+  padding-left: 32rpx;
   background: #f6f8fb;
 }
 
-.onboarding-top {
+.onboarding-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 0;
+}
+
+.nav-brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16rpx;
+  min-width: 0;
+  flex: 1;
+}
+
+.nav-brand .nav-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mini-brand {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 18rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 14rpx;
   background: #102a43;
   color: #ffffff;
-  font-size: 22rpx;
+  font-size: 18rpx;
   font-weight: 700;
-  line-height: 60rpx;
+  line-height: 48rpx;
   text-align: center;
-  letter-spacing: 2rpx;
+  letter-spacing: 1rpx;
 }
 
-.skip-text {
+.card-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
   color: #829ab1;
-  font-size: 25rpx;
+  font-size: 23rpx;
+}
+
+.card-progress text:last-child {
+  color: #1976d2;
+  font-weight: 700;
 }
 
 .step-indicator {
@@ -308,20 +335,6 @@
 .next-arrow {
   font-size: 36rpx;
   font-weight: 300;
-}
-
-.card-progress {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 58rpx;
-  color: #829ab1;
-  font-size: 23rpx;
-}
-
-.card-progress text:last-child {
-  color: #1976d2;
-  font-weight: 700;
 }
 
 .onboarding-card {

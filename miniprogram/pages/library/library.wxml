@@ -1,54 +1,94 @@
 <view class="page library-page">
-  <view class="library-header">
-    <view>
-      <text class="eyebrow">MY LIBRARY</text>
-      <text class="library-title">选择学习内容</text>
-    </view>
-    <button class="settings-link" bindtap="openSettings">设置</button>
-  </view>
-
-  <view class="library-intro">
-    <text>像选择一本书一样，开始今天的学习。</text>
-    <text class="muted">每套内容都有独立的学习进度。</text>
-  </view>
-
-  <view wx:if="{{loading}}" class="library-loading card-panel">
-    <text class="muted">正在整理你的学习内容…</text>
-  </view>
-
-  <view wx:else class="deck-list">
+  <view class="custom-nav" style="height: {{navTotalHeight}}px;">
+    <view style="height: {{statusBarHeight}}px;"></view>
     <view
-      wx:for="{{decks}}"
-      wx:key="id"
-      class="deck-card deck-card-{{index}} {{item.id === activeDeckId ? 'active' : ''}}"
-      data-deck-id="{{item.id}}"
-      bindtap="selectDeck"
+      class="custom-nav-bar"
+      style="height: {{navBarHeight}}px; padding-right: {{menuSideGap}}px;"
     >
-      <view class="deck-cover deck-cover-{{index}}">
-        <text class="cover-label">{{item.label}}</text>
-        <text class="cover-mark">{{index === 0 ? 'KC' : '0' + index}}</text>
-        <view class="cover-line"></view>
+      <view class="nav-title-wrap">
+        <text class="nav-eyebrow">MY LIBRARY</text>
+        <text class="nav-title">选择学习内容</text>
       </view>
-      <view class="deck-info">
-        <view class="deck-heading">
-          <text class="deck-title">{{item.title}}</text>
-          <text wx:if="{{item.id === activeDeckId}}" class="active-badge">正在学习</text>
+      <button class="nav-action" bindtap="openSettings">设置</button>
+    </view>
+  </view>
+
+  <view class="library-body" style="padding-top: {{navTotalHeight}}px;">
+    <view wx:if="{{loading}}" class="library-loading card-panel">
+      <text class="muted">正在整理你的学习内容…</text>
+    </view>
+
+    <view wx:else class="collection-list">
+      <view
+        wx:for="{{collections}}"
+        wx:key="id"
+        class="collection-card {{item.hasActiveDeck ? 'active' : ''}}"
+      >
+        <view
+          class="collection-main"
+          data-collection-id="{{item.id}}"
+          bindtap="toggleCollection"
+        >
+          <view class="deck-cover deck-cover-{{index}}">
+            <text class="cover-label">{{item.label}}</text>
+            <text class="cover-mark">{{item.coverMark}}</text>
+            <view class="cover-line"></view>
+          </view>
+          <view class="deck-info">
+            <view class="deck-heading">
+              <text class="deck-title">{{item.title}}</text>
+              <text class="expand-mark">
+                {{expandedCollectionId === item.id ? '收起' : '展开'}}
+              </text>
+            </view>
+            <text class="deck-subtitle">{{item.subtitle}}</text>
+            <view class="deck-progress-summary">
+              <text>{{item.stats.learnedCards}} / {{item.stats.totalCards}} 张已学</text>
+              <text>{{item.stats.completionPercent}}%</text>
+            </view>
+            <view class="deck-progress-track">
+              <view
+                class="deck-progress-fill"
+                style="width: {{item.stats.completionPercent}}%;"
+              ></view>
+            </view>
+            <text wx:if="{{item.stats.dueCards}}" class="due-hint">
+              {{item.stats.dueCards}} 张待复习
+            </text>
+            <text wx:else class="deck-action">
+              {{item.decks.length}} 个知识点分组
+            </text>
+          </view>
         </view>
-        <text class="deck-subtitle">{{item.subtitle}}</text>
-        <view class="deck-progress-summary">
-          <text>{{item.stats.learnedCards}} / {{item.stats.totalCards}} 张已学</text>
-          <text>{{item.stats.completionPercent}}%</text>
-        </view>
-        <view class="deck-progress-track">
+
+        <view wx:if="{{expandedCollectionId === item.id}}" class="subdeck-list">
           <view
-            class="deck-progress-fill"
-            style="width: {{item.stats.completionPercent}}%;"
-          ></view>
+            wx:for="{{item.decks}}"
+            wx:for-item="deck"
+            wx:key="id"
+            class="subdeck-row {{deck.id === activeDeckId ? 'active' : ''}}"
+            data-deck-id="{{deck.id}}"
+            catchtap="selectDeck"
+          >
+            <view class="subdeck-copy">
+              <view class="subdeck-heading">
+                <text class="subdeck-label">{{deck.label}}</text>
+                <text wx:if="{{deck.id === activeDeckId}}" class="active-badge">正在学习</text>
+              </view>
+              <text class="subdeck-title">{{deck.title}}</text>
+              <text class="subdeck-subtitle">{{deck.subtitle}}</text>
+            </view>
+            <view class="subdeck-meta">
+              <text class="subdeck-progress">
+                {{deck.stats.learnedCards}}/{{deck.stats.totalCards}}
+              </text>
+              <text wx:if="{{deck.stats.dueCards}}" class="subdeck-due">
+                {{deck.stats.dueCards}} 待复习
+              </text>
+              <text wx:else class="subdeck-enter">进入 →</text>
+            </view>
+          </view>
         </view>
-        <text wx:if="{{item.stats.dueCards}}" class="due-hint">
-          {{item.stats.dueCards}} 张待复习
-        </text>
-        <text wx:else class="deck-action">点击进入学习 →</text>
       </view>
     </view>
   </view>

@@ -1,4 +1,4 @@
 {
-  "navigationBarTitleText": "认识 KnowledgeCard"
+  "navigationStyle": "custom",
+  "navigationBarTextStyle": "black"
 }
-
