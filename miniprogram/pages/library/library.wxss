@@ -1,0 +1,236 @@
+.library-page {
+  padding-top: 48rpx;
+  padding-bottom: 56rpx;
+}
+
+.library-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.eyebrow {
+  display: block;
+  color: #1976d2;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.library-title {
+  display: block;
+  margin-top: 12rpx;
+  color: #102a43;
+  font-size: 42rpx;
+  font-weight: 700;
+}
+
+.settings-link {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 8rpx;
+  border: 0;
+  background: transparent;
+  color: #1976d2;
+  font-size: 26rpx;
+  line-height: 50rpx;
+  white-space: nowrap;
+}
+
+.settings-link::after {
+  border: 0;
+}
+
+.library-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 24rpx;
+  color: #334e68;
+  font-size: 27rpx;
+  line-height: 1.5;
+}
+
+.library-intro .muted {
+  font-size: 23rpx;
+}
+
+.library-loading {
+  margin-top: 36rpx;
+  text-align: center;
+}
+
+.deck-list {
+  margin-top: 36rpx;
+}
+
+.deck-card {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 22rpx;
+  padding: 22rpx;
+  border: 1rpx solid transparent;
+  border-radius: 26rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 32rpx rgba(16, 42, 67, 0.07);
+}
+
+.deck-card.active {
+  border-color: #9ac8ec;
+  box-shadow: 0 14rpx 34rpx rgba(25, 118, 210, 0.12);
+}
+
+.deck-cover {
+  position: relative;
+  flex-shrink: 0;
+  width: 154rpx;
+  height: 204rpx;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 20rpx 18rpx;
+  border-radius: 18rpx;
+  color: #ffffff;
+}
+
+.deck-cover::after {
+  position: absolute;
+  right: -44rpx;
+  bottom: -44rpx;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  content: "";
+}
+
+.deck-cover-0 {
+  background: #102a43;
+}
+
+.deck-cover-1 {
+  background: #1976d2;
+}
+
+.deck-cover-2 {
+  background: #486581;
+}
+
+.deck-cover-3 {
+  background: #2f855a;
+}
+
+.deck-cover-4 {
+  background: #b7791f;
+}
+
+.cover-label,
+.cover-mark {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+.cover-label {
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+  opacity: 0.78;
+}
+
+.cover-mark {
+  margin-top: 64rpx;
+  font-size: 40rpx;
+  font-weight: 700;
+}
+
+.cover-line {
+  position: absolute;
+  bottom: 24rpx;
+  left: 18rpx;
+  z-index: 1;
+  width: 56rpx;
+  height: 4rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.deck-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.deck-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.deck-title {
+  color: #102a43;
+  font-size: 29rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.active-badge {
+  flex-shrink: 0;
+  padding: 6rpx 10rpx;
+  border-radius: 999rpx;
+  background: #e6f6ff;
+  color: #1976d2;
+  font-size: 18rpx;
+}
+
+.deck-subtitle {
+  display: -webkit-box;
+  margin-top: 12rpx;
+  overflow: hidden;
+  color: #627d98;
+  font-size: 22rpx;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.deck-progress-summary {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 22rpx;
+  color: #829ab1;
+  font-size: 20rpx;
+}
+
+.deck-progress-track {
+  height: 8rpx;
+  margin-top: 10rpx;
+  overflow: hidden;
+  border-radius: 999rpx;
+  background: #e8eef5;
+}
+
+.deck-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #1976d2;
+  transition: width 240ms ease-out;
+}
+
+.due-hint,
+.deck-action {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 21rpx;
+}
+
+.due-hint {
+  color: #c05621;
+  font-weight: 600;
+}
+
+.deck-action {
+  color: #1976d2;
+}

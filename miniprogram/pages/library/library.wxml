@@ -1,0 +1,55 @@
+<view class="page library-page">
+  <view class="library-header">
+    <view>
+      <text class="eyebrow">MY LIBRARY</text>
+      <text class="library-title">选择学习内容</text>
+    </view>
+    <button class="settings-link" bindtap="openSettings">设置</button>
+  </view>
+
+  <view class="library-intro">
+    <text>像选择一本书一样，开始今天的学习。</text>
+    <text class="muted">每套内容都有独立的学习进度。</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="library-loading card-panel">
+    <text class="muted">正在整理你的学习内容…</text>
+  </view>
+
+  <view wx:else class="deck-list">
+    <view
+      wx:for="{{decks}}"
+      wx:key="id"
+      class="deck-card deck-card-{{index}} {{item.id === activeDeckId ? 'active' : ''}}"
+      data-deck-id="{{item.id}}"
+      bindtap="selectDeck"
+    >
+      <view class="deck-cover deck-cover-{{index}}">
+        <text class="cover-label">{{item.label}}</text>
+        <text class="cover-mark">{{index === 0 ? 'KC' : '0' + index}}</text>
+        <view class="cover-line"></view>
+      </view>
+      <view class="deck-info">
+        <view class="deck-heading">
+          <text class="deck-title">{{item.title}}</text>
+          <text wx:if="{{item.id === activeDeckId}}" class="active-badge">正在学习</text>
+        </view>
+        <text class="deck-subtitle">{{item.subtitle}}</text>
+        <view class="deck-progress-summary">
+          <text>{{item.stats.learnedCards}} / {{item.stats.totalCards}} 张已学</text>
+          <text>{{item.stats.completionPercent}}%</text>
+        </view>
+        <view class="deck-progress-track">
+          <view
+            class="deck-progress-fill"
+            style="width: {{item.stats.completionPercent}}%;"
+          ></view>
+        </view>
+        <text wx:if="{{item.stats.dueCards}}" class="due-hint">
+          {{item.stats.dueCards}} 张待复习
+        </text>
+        <text wx:else class="deck-action">点击进入学习 →</text>
+      </view>
+    </view>
+  </view>
+</view>

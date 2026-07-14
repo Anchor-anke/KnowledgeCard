@@ -2,17 +2,28 @@ const api = require('../../utils/mock-api')
 
 Page({
   data: {
-    loading: true
+    loading: true,
+    onboardingCompleted: false
   },
 
   onShow() {
     api.getSession().then((user) => {
-      if (user.onboardingCompleted) {
-        wx.switchTab({ url: '/pages/study/study' })
-      } else {
-        wx.redirectTo({ url: '/pages/onboarding/onboarding' })
-      }
+      this.setData({
+        loading: false,
+        onboardingCompleted: user.onboardingCompleted
+      })
     })
+  },
+
+  start() {
+    if (this.data.loading) {
+      return
+    }
+    if (this.data.onboardingCompleted) {
+      wx.switchTab({ url: '/pages/library/library' })
+      return
+    }
+    wx.redirectTo({ url: '/pages/onboarding/onboarding' })
   }
 })
 

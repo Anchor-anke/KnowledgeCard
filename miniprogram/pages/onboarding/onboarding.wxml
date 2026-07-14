@@ -1,28 +1,46 @@
 <view class="page onboarding-page">
-  <view class="hero card-panel">
-    <text class="eyebrow">30 秒开始一次学习</text>
-    <text class="heading">短卡片 + 间隔复习</text>
-    <text class="muted description">每张卡只讲清一个知识点。完成卡片后告诉系统你的记忆程度，系统会安排下一次复习。</text>
+  <view class="onboarding-top">
+    <view class="mini-brand">KC</view>
+    <text class="skip-text" wx:if="{{currentStep < steps.length - 1}}" bindtap="start">跳过</text>
   </view>
 
-  <view class="card-panel guide-panel">
-    <text class="section-title">三档记忆自评</text>
-    <view class="rating-guide">
-      <text class="rating-forgot">忘了</text>
-      <text class="muted">无法回忆核心内容</text>
+  <view class="card-progress">
+    <text>知识卡教学</text>
+    <text>{{currentStep + 1}} / {{steps.length}}</text>
+  </view>
+
+  <view
+    class="onboarding-card {{demoAnimation}}"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+  >
+    <view class="card-header">
+      <text>KnowledgeCard</text>
+      <text>0{{currentStep + 1}}</text>
     </view>
-    <view class="rating-guide">
-      <text class="rating-vague">模糊</text>
-      <text class="muted">能想起部分内容，但不稳定</text>
+
+    <view class="card-body">
+      <view class="card-symbol">
+        <text>{{steps[currentStep].visual}}</text>
+      </view>
+      <text class="tour-eyebrow">{{steps[currentStep].eyebrow}}</text>
+      <text class="tour-title">{{steps[currentStep].title}}</text>
+      <text class="tour-description">{{steps[currentStep].description}}</text>
     </view>
-    <view class="rating-guide">
-      <text class="rating-remembered">记住了</text>
-      <text class="muted">能够较完整地回忆核心内容</text>
+
+    <view class="card-footer">
+      <text wx:if="{{currentStep === 0}}">上滑开始　左右跳过</text>
+      <text wx:elif="{{currentStep === 2}}">上滑下一张　下滑上一张　左右跳过</text>
+      <text wx:elif="{{currentStep === steps.length - 1}}">上滑完成学习　下滑返回</text>
+      <text wx:else>上滑下一张　下滑上一张　左右跳过</text>
+      <text class="card-footer-arrow">↑</text>
     </view>
   </view>
 
-  <button class="primary-button" bindtap="start" loading="{{submitting}}">
-    确认 CAPM 学习目标
-  </button>
+  <view wx:if="{{gestureResult}}" class="gesture-result {{gestureResultType}}">
+    {{gestureResult}}
+  </view>
+  <text class="onboarding-note">像学习一样滑动卡片</text>
 </view>
 

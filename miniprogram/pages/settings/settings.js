@@ -33,7 +33,7 @@ Page({
         icon: 'success'
       })
       setTimeout(() => {
-        wx.switchTab({ url: '/pages/study/study' })
+        wx.switchTab({ url: '/pages/library/library' })
       }, 500)
     })
   },

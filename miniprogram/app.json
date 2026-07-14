@@ -2,6 +2,7 @@
   "pages": [
     "pages/index/index",
     "pages/onboarding/onboarding",
+    "pages/library/library",
     "pages/study/study",
     "pages/settings/settings"
   ],
@@ -17,6 +18,10 @@
     "selectedColor": "#1976d2",
     "backgroundColor": "#ffffff",
     "list": [
+      {
+        "pagePath": "pages/library/library",
+        "text": "知识库"
+      },
       {
         "pagePath": "pages/study/study",
         "text": "学习"
