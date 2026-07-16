@@ -1,0 +1,135 @@
+page {
+  background: #f4f7fb;
+  color: #102a43;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+view,
+text,
+button,
+input,
+scroll-view,
+picker,
+switch {
+  box-sizing: border-box;
+}
+
+.page {
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.muted {
+  color: #627d98;
+}
+
+.custom-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 20;
+  box-sizing: border-box;
+  padding: 0 32rpx;
+  background: rgba(244, 247, 251, 0.97);
+}
+
+.custom-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  box-sizing: border-box;
+  gap: 16rpx;
+}
+
+.nav-title-wrap {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.nav-eyebrow {
+  display: block;
+  color: #1976d2;
+  font-size: 18rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  line-height: 1.2;
+}
+
+.nav-title {
+  display: block;
+  overflow: hidden;
+  margin-top: 2rpx;
+  color: #102a43;
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  flex-shrink: 0;
+  height: 44rpx;
+  margin: 0;
+  padding: 0 8rpx;
+  border: 0;
+  background: transparent;
+  color: #1976d2;
+  font-size: 26rpx;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.nav-action::after {
+  border: 0;
+}
+
+.nav-action.muted {
+  color: #829ab1;
+}
+
+.card-panel {
+  padding: 36rpx;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 12rpx 36rpx rgba(16, 42, 67, 0.08);
+}
+
+.primary-button,
+.secondary-button {
+  border: 0;
+  border-radius: 18rpx;
+  font-size: 28rpx;
+  line-height: 88rpx;
+}
+
+.primary-button::after,
+.secondary-button::after {
+  border: 0;
+}
+
+.primary-button {
+  margin-top: 28rpx;
+  background: #1976d2;
+  color: #ffffff;
+}
+
+.secondary-button {
+  margin-top: 20rpx;
+  background: #d9eaf7;
+  color: #102a43;
+}
+
+.empty-panel {
+  margin-top: 28rpx;
+  text-align: center;
+}
