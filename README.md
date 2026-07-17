@@ -2,7 +2,7 @@
 
 把长资料变成短知识卡，用上下滑动学习、用间隔复习记住。
 
-KnowledgeCard 是一款面向碎片时间的学习工具。产品方向是：用户上传自己的 PDF，由 AI 整理成可确认的知识卡，再进入滑动学习与间隔复习。当前仓库包含**跨平台移动端**、**微信小程序 Mock 客户端**与**领域核心 MVP**；演示内容仍使用内置 CAPM 卡组，用户 PDF 上传与真实 AI 生成见后续文档。
+KnowledgeCard 是一款面向碎片时间的学习工具。产品方向是：用户上传自己的 PDF，由 AI 整理成可确认的知识卡，再进入滑动学习与间隔复习。当前仓库包含**跨平台移动端**、**微信小程序 Mock 客户端**、**本地 AI 总结后端**与**领域核心 MVP**；移动端演示内容仍使用内置 CAPM 卡组，真实 AI 制卡可通过本地后端验证。
 
 ## 当前版本包含什么
 
@@ -11,6 +11,18 @@ KnowledgeCard 是一款面向碎片时间的学习工具。产品方向是：用
 使用 **uni-app + Vue 3** 重写，一套页面代码面向 Android、华为 Android、iOS 和 HarmonyOS NEXT。移动端当前使用本地 Mock 数据，适合先在真机上验证产品体验。
 
 详细的 HBuilderX、Android/iOS 签名和 HarmonyOS 构建说明见 [`mobile/README.md`](mobile/README.md)。
+
+### AI 总结测试后端（`backend/`）
+
+使用 **FastAPI + MiMo OpenAI-compatible API** 构建的本地原型，支持：
+
+- 提交文本或可复制文字的 PDF；
+- 生成资料总结、重点和知识卡草稿；
+- 保留 PDF 页码来源；
+- 通过任务状态轮询查看处理结果；
+- 将卡片标记为 `USER_DRAFT`，不会绕过审核直接进入学习流。
+
+后端当前用于效果验证，使用内存任务存储，不包含正式登录、数据库或对象存储。完整启动和接口说明见 [`backend/README.md`](backend/README.md)。
 
 ### 微信小程序 Mock（`miniprogram/`）
 
@@ -61,6 +73,32 @@ Python 标准库实现的可运行领域 MVP，用适配器隔离存储、微信
 
 普通华为 Android 手机使用 Android 包即可；HarmonyOS NEXT 按 [`mobile/README.md`](mobile/README.md) 的鸿蒙构建说明操作。
 
+## 快速开始：AI 总结后端
+
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+```
+
+编辑 `backend/.env`，填写自己的 `AI_API_KEY`。默认配置使用 MiMo：
+
+```dotenv
+AI_BASE_URL=https://api.xiaomimimo.com/v1
+AI_MODEL=mimo-v2.5-pro
+AI_API_KEY=your-local-api-key
+```
+
+启动服务并打开接口文档：
+
+```bash
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+访问 <http://127.0.0.1:8000/docs>，可测试文本总结和 PDF 转知识卡片。
+
 ## 快速开始：微信小程序
 
 1. 安装并打开[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)。
@@ -80,10 +118,19 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 
 覆盖新用户闭环、未发布内容隔离、自评与幂等、到期复习优先、逾期合并、内容状态机、反馈与提醒等场景。
 
+后端原型测试：
+
+```bash
+PYTHONPATH=backend backend/.venv/bin/python -m unittest discover -s backend/tests -v
+```
+
 ## 仓库结构
 
 ```text
 KnowledgeCard/
+├── backend/              # FastAPI AI 总结与 PDF 转卡片测试后端
+│   ├── app/              # API、AI 客户端、任务和 PDF 解析
+│   └── tests/            # 后端接口与 Fake AI 测试
 ├── mobile/               # uni-app 跨平台移动端
 │   ├── pages/            # 欢迎 / 引导 / 知识库 / 学习 / 设置
 │   ├── utils/            # 本地 Mock 数据与布局
@@ -100,13 +147,14 @@ KnowledgeCard/
 
 ## 边界说明
 
-- 当前移动端和小程序均为 **Mock**：无真实登录、HTTP API、生产库或真实 AI。
-- **用户 PDF 上传 / 解析 / AI 制卡**已在需求与流程文档中定义，尚未接入客户端。
+- 当前移动端和小程序仍为 **Mock**：尚未接入真实登录、HTTP API 或后端审核页面。
+- `backend/` 是用于本地效果验证的原型：使用内存任务存储，尚未接入生产数据库、对象存储、正式鉴权和队列。
+- **用户 PDF 上传 / 解析 / AI 制卡**已在后端原型和需求文档中定义，移动端上传与审核页面尚未接入。
 - CAPM 为演示与可选学习场景，不是唯一内容来源。
 - 领域服务通过 `KnowledgeCardApplication` 与 repositories / adapters 扩展；不要绕过领域层直接改业务状态。
 
 ## 下一步
 
-- 接入用户 PDF 导入与 AI 草稿生成（见 `docs/user-pdf-import.md`）
-- 用真实 HTTP API 替换 `mock-api.js`
+- 将移动端和小程序的资料上传、处理进度、草稿审核页面接入 `backend/`
+- 将后端内存任务替换为正式鉴权、对象存储、数据库和异步队列
 - 接入微信登录、订阅消息与持久化存储
