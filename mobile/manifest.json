@@ -1,0 +1,42 @@
+{
+  "name": "知识卡",
+  "appid": "__UNI__KNOWLEDGECARD",
+  "vueVersion": "3",
+  "description": "把长资料变成短知识卡，用间隔复习记住真正重要的知识。",
+  "versionName": "0.1.0",
+  "versionCode": 10,
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>"
+        ]
+      },
+      "ios": {
+        "privacyDescription": {
+          "NSPhotoLibraryUsageDescription": "用于选择学习资料和反馈图片。",
+          "NSCameraUsageDescription": "用于后续扫描学习资料。",
+          "NSMicrophoneUsageDescription": "KnowledgeCard 不会在当前版本使用麦克风。"
+        }
+      }
+    }
+  },
+  "app-harmony": {
+    "distribute": {
+      "bundleName": "com.knowledgecard.app"
+    }
+  },
+  "h5": {
+    "title": "知识卡"
+  }
+}

@@ -96,14 +96,13 @@ import { getNavMetrics, showError } from '../../utils/layout'
 
 export default {
   data() {
+    const navMetrics = getNavMetrics()
     return {
       loading: true,
       collections: [],
       activeDeckId: 'capm-all',
       expandedCollectionId: 'capm',
-      statusBarHeight: 20,
-      navBarHeight: 44,
-      navTotalHeight: 64
+      ...navMetrics
     }
   },
   onShow() {
@@ -112,7 +111,11 @@ export default {
   },
   methods: {
     load() {
-      this.loading = true
+      // Keep the current list visible while the tab is refreshed. This avoids
+      // a loading-panel flash when returning to the library on iOS.
+      if (!this.collections.length) {
+        this.loading = true
+      }
       api.getLibrary().then((result) => {
         const activeCollection = (result.collections || []).find(
           (collection) => collection.hasActiveDeck

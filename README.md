@@ -2,9 +2,15 @@
 
 把长资料变成短知识卡，用上下滑动学习、用间隔复习记住。
 
-KnowledgeCard 是一款面向碎片时间的微信小程序学习工具。产品方向是：用户上传自己的 PDF，由 AI 整理成可确认的知识卡，再进入滑动学习与间隔复习。当前仓库已交付**领域核心 MVP**与**微信小程序 Mock 客户端**；演示内容仍使用内置 CAPM 卡组，用户 PDF 上传与真实 AI 生成见后续文档。
+KnowledgeCard 是一款面向碎片时间的学习工具。产品方向是：用户上传自己的 PDF，由 AI 整理成可确认的知识卡，再进入滑动学习与间隔复习。当前仓库包含**跨平台移动端**、**微信小程序 Mock 客户端**与**领域核心 MVP**；演示内容仍使用内置 CAPM 卡组，用户 PDF 上传与真实 AI 生成见后续文档。
 
 ## 当前版本包含什么
+
+### 跨平台移动端（`mobile/`）
+
+使用 **uni-app + Vue 3** 重写，一套页面代码面向 Android、华为 Android、iOS 和 HarmonyOS NEXT。移动端当前使用本地 Mock 数据，适合先在真机上验证产品体验。
+
+详细的 HBuilderX、Android/iOS 签名和 HarmonyOS 构建说明见 [`mobile/README.md`](mobile/README.md)。
 
 ### 微信小程序 Mock（`miniprogram/`）
 
@@ -46,6 +52,15 @@ Python 标准库实现的可运行领域 MVP，用适配器隔离存储、微信
 | [module-design.md](docs/module-design.md) | 模块边界、数据对象与接口设计 |
 | [wechat-mock-verification.md](docs/wechat-mock-verification.md) | 小程序 Mock 导入与验证清单 |
 
+## 快速开始：移动端
+
+1. 安装最新版 [HBuilderX](https://www.dcloud.io/hbuilderx.html)。
+2. 在 HBuilderX 中打开 `mobile/` 目录。
+3. 选择运行到 Android、iOS 或 HarmonyOS NEXT 设备。
+4. 真机发行前，配置对应平台的签名证书和隐私说明。
+
+普通华为 Android 手机使用 Android 包即可；HarmonyOS NEXT 按 [`mobile/README.md`](mobile/README.md) 的鸿蒙构建说明操作。
+
 ## 快速开始：微信小程序
 
 1. 安装并打开[微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)。
@@ -69,6 +84,10 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 
 ```text
 KnowledgeCard/
+├── mobile/               # uni-app 跨平台移动端
+│   ├── pages/            # 欢迎 / 引导 / 知识库 / 学习 / 设置
+│   ├── utils/            # 本地 Mock 数据与布局
+│   └── static/           # 图标资源
 ├── miniprogram/          # 微信小程序 Mock 客户端
 │   ├── pages/            # 欢迎 / 引导 / 知识库 / 学习 / 设置
 │   ├── utils/            # mock-api、自适应布局
@@ -81,7 +100,7 @@ KnowledgeCard/
 
 ## 边界说明
 
-- 当前小程序为 **Mock**：无真实微信登录、HTTP API、生产库或真实 AI。
+- 当前移动端和小程序均为 **Mock**：无真实登录、HTTP API、生产库或真实 AI。
 - **用户 PDF 上传 / 解析 / AI 制卡**已在需求与流程文档中定义，尚未接入客户端。
 - CAPM 为演示与可选学习场景，不是唯一内容来源。
 - 领域服务通过 `KnowledgeCardApplication` 与 repositories / adapters 扩展；不要绕过领域层直接改业务状态。

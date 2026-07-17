@@ -3,4 +3,8 @@ __pycache__/
 *.py[cod]
 .DS_Store
 project.private.config.json
+mobile/unpackage/
+backend/.env
+backend/.venv/
+backend/storage/
 

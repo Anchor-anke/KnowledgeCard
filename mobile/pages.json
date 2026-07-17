@@ -1,0 +1,85 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom",
+        "animationType": "none",
+        "animationDuration": 0
+      }
+    },
+    {
+      "path": "pages/onboarding/onboarding",
+      "style": {
+        "navigationStyle": "custom",
+        "animationType": "none",
+        "animationDuration": 0
+      }
+    },
+    {
+      "path": "pages/library/library",
+      "style": {
+        "navigationStyle": "custom",
+        "animationType": "none",
+        "animationDuration": 0
+      }
+    },
+    {
+      "path": "pages/study/study",
+      "style": {
+        "navigationStyle": "custom",
+        "animationType": "none",
+        "animationDuration": 0,
+        "disableScroll": true,
+        "app-plus": {
+          "bounce": "none"
+        }
+      }
+    },
+    {
+      "path": "pages/settings/settings",
+      "style": {
+        "navigationStyle": "custom",
+        "animationType": "none",
+        "animationDuration": 0
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "知识卡",
+    "navigationBarBackgroundColor": "#F4F7FB",
+    "backgroundColor": "#F4F7FB",
+    "backgroundTextStyle": "light",
+    "app-plus": {
+      "background": "#F4F7FB",
+      "popGesture": "close"
+    }
+  },
+  "tabBar": {
+    "color": "#829AB1",
+    "selectedColor": "#1976D2",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/library/library",
+        "text": "知识库",
+        "iconPath": "static/tabbar/library.png",
+        "selectedIconPath": "static/tabbar/library-active.png"
+      },
+      {
+        "pagePath": "pages/study/study",
+        "text": "学习",
+        "iconPath": "static/tabbar/study.png",
+        "selectedIconPath": "static/tabbar/study-active.png"
+      },
+      {
+        "pagePath": "pages/settings/settings",
+        "text": "设置",
+        "iconPath": "static/tabbar/settings.png",
+        "selectedIconPath": "static/tabbar/settings-active.png"
+      }
+    ]
+  }
+}
