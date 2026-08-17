@@ -4,7 +4,11 @@ __pycache__/
 .DS_Store
 project.private.config.json
 mobile/unpackage/
+mobile/dist/
+mobile/node_modules/
+mobile/.signing/
+mobile/pack/
+project-observer.yaml
 backend/.env
 backend/.venv/
 backend/storage/
-

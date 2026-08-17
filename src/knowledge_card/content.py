@@ -207,6 +207,7 @@ class ContentService:
     def approve(self, actor_id: str, card_version_id: str, reason: str, request_id: str) -> CardVersion:
         self._require_role(actor_id, Role.REVIEWER)
         item = self._get_card(card_version_id)
+        require(item.status == ContentStatus.IN_REVIEW, "只有审核中的版本可以审核")
         require(item.created_by != actor_id, "不能审核自己创建的内容")
         require(bool(reason.strip()), "审核通过必须填写审核意见")
         item.reviewed_by = actor_id
@@ -220,6 +221,7 @@ class ContentService:
     def reject(self, actor_id: str, card_version_id: str, reason: str, request_id: str) -> CardVersion:
         self._require_role(actor_id, Role.REVIEWER)
         item = self._get_card(card_version_id)
+        require(item.status == ContentStatus.IN_REVIEW, "只有审核中的版本可以审核")
         require(item.created_by != actor_id, "不能审核自己创建的内容")
         require(bool(reason.strip()), "驳回必须填写原因")
         item.reviewed_by = actor_id
@@ -286,6 +288,10 @@ class ContentService:
         ]
 
     def _transition(self, actor_id, card_version_id, target, reason, request_id):
+        require(
+            isinstance(request_id, str) and bool(request_id.strip()),
+            "请求编号不能为空",
+        )
         item = self._get_card(card_version_id)
         allowed = self.ALLOWED_TRANSITIONS.get(item.status, ())
         require(target in allowed, "{} 不能转换为 {}".format(item.status.value, target.value))
@@ -368,4 +374,3 @@ class ContentService:
         )
         for value, label in fields:
             require(isinstance(value, str) and bool(value.strip()), "{}不能为空".format(label))
-

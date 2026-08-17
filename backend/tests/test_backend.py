@@ -1,4 +1,7 @@
 import json
+import hashlib
+import hmac
+import os
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -65,6 +68,7 @@ class BackendTestCase(unittest.TestCase):
         self.previous_job_service = main.job_service
         main.job_service = SummaryJobService(FakeAIClient())
         self.client = TestClient(main.app)
+        self.client.headers.update({"X-User-ID": "test-user"})
 
     def tearDown(self):
         main.job_service = self.previous_job_service
@@ -88,6 +92,57 @@ class BackendTestCase(unittest.TestCase):
         ).json()
         self.assertEqual(task["status"], "DRAFT_READY")
         self.assertEqual(task["result"]["cards"][0]["status"], "USER_DRAFT")
+
+    def test_summary_task_is_scoped_to_owner(self):
+        response = self.client.post(
+            "/api/v1/summaries/text",
+            json={"title": "私有资料", "text": "只属于测试用户。"},
+        )
+        task_id = response.json()["task_id"]
+        other = self.client.get(
+            f"/api/v1/summaries/{task_id}",
+            headers={"X-User-ID": "other-user"},
+        )
+        self.assertEqual(other.status_code, 404)
+
+    def test_summary_requires_user_identity(self):
+        response = self.client.post(
+            "/api/v1/summaries/text",
+            headers={"X-User-ID": ""},
+            json={"text": "没有身份的请求"},
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_signed_user_identity_is_required_when_configured(self):
+        user_id = "signed-user"
+        signature = hmac.new(
+            b"test-secret", user_id.encode("utf-8"), hashlib.sha256
+        ).hexdigest()
+        with patch.dict(
+            os.environ,
+            {
+                "USER_ID_SIGNING_SECRET": "test-secret",
+                "ALLOW_INSECURE_DEV_IDENTITY": "false",
+            },
+        ):
+            response = self.client.post(
+                "/api/v1/summaries/text",
+                headers={
+                    "X-User-ID": user_id,
+                    "X-User-Signature": signature,
+                },
+                json={"text": "带签名的用户资料"},
+            )
+        self.assertEqual(response.status_code, 202)
+
+    def test_pdf_upload_is_rejected_before_unbounded_read(self):
+        with patch("app.main.max_pdf_bytes", return_value=1024):
+            response = self.client.post(
+                "/api/v1/summaries/pdf",
+                data={"title": "过大 PDF"},
+                files={"file": ("study.pdf", b"x" * 1025, "application/pdf")},
+            )
+        self.assertEqual(response.status_code, 413)
 
     def test_pdf_summary_extracts_text_before_generation(self):
         with patch("app.main.extract_pdf_text", return_value="[第 1 页]\n项目资料"):

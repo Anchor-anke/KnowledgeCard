@@ -1,0 +1,16 @@
+{
+  "name": "knowledge-card-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@dcloudio/uni-app": "3.0.0-alpha-5010220260604001",
+    "@dcloudio/uni-app-harmony": "3.0.0-alpha-5010220260604001",
+    "@dcloudio/uni-app-plus": "3.0.0-alpha-5010220260604001",
+    "@dcloudio/uni-components": "3.0.0-alpha-5010220260604001",
+    "vue": "3.4.21"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-cli-shared": "3.0.0-alpha-5010220260604001",
+    "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5010220260604001"
+  }
+}

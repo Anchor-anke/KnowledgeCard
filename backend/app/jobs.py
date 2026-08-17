@@ -23,6 +23,7 @@ def utc_now() -> datetime:
 @dataclass
 class SummaryTask:
     id: str
+    owner_id: str
     title: str
     source_type: str
     source_name: Optional[str]
@@ -56,6 +57,7 @@ class SummaryJobService:
 
     def create_task(
         self,
+        owner_id: str,
         title: str,
         source_type: str,
         source_name: Optional[str],
@@ -64,6 +66,7 @@ class SummaryJobService:
     ) -> SummaryTask:
         task = SummaryTask(
             id=f"summary_{uuid4().hex}",
+            owner_id=owner_id,
             title=title.strip() or "未命名资料",
             source_type=source_type,
             source_name=source_name,
@@ -90,9 +93,12 @@ class SummaryJobService:
             return
         self._update(task_id, status=TASK_DRAFT_READY, result=result, error=None)
 
-    def get_task(self, task_id: str) -> Optional[SummaryTask]:
+    def get_task(self, task_id: str, owner_id: Optional[str] = None) -> Optional[SummaryTask]:
         with self._lock:
-            return self._tasks.get(task_id)
+            task = self._tasks.get(task_id)
+            if task is None or (owner_id is not None and task.owner_id != owner_id):
+                return None
+            return task
 
     def _update(self, task_id: str, **changes) -> None:
         with self._lock:

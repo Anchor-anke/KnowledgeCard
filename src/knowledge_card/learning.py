@@ -89,6 +89,7 @@ class LearningService:
         card = self.cards.get(card_version_id)
         if card is None:
             raise NotFoundError("卡片版本不存在")
+        require(card.status == ContentStatus.PUBLISHED, "只有已发布卡片可以学习")
         require(bool(session_id), "学习会话不能为空")
         key = (user_id, session_id, card_version_id)
         if key in self._completed:
@@ -127,10 +128,19 @@ class LearningService:
                 raise ValidationError("无效的记忆自评")
         existing = self.records.find_by_idempotency(user_id, idempotency_key)
         if existing is not None:
+            same_request = (
+                existing.card_version_id == card_version_id
+                and existing.session_id == session_id
+                and existing.rating == rating
+                and existing.correction_of == correction_of
+            )
+            if not same_request:
+                raise ConflictError("幂等键已经绑定到另一条学习请求")
             return existing
         card = self.cards.get(card_version_id)
         if card is None:
             raise NotFoundError("卡片版本不存在")
+        require(card.status == ContentStatus.PUBLISHED, "只有已发布卡片可以学习")
         completion_key = (user_id, session_id, card_version_id)
         if correction_of is None and completion_key not in self._completed:
             raise ConflictError("请先完成卡片，再提交记忆自评")
@@ -142,7 +152,21 @@ class LearningService:
                 original.card_version_id == card_version_id,
                 "修正记录必须关联同一张卡片版本",
             )
-        at = occurred_at or self.clock()
+        server_time = self.clock()
+        if occurred_at is not None:
+            require(
+                getattr(occurred_at, "tzinfo", None) is not None
+                and occurred_at.utcoffset() is not None,
+                "学习发生时间必须包含时区",
+            )
+            try:
+                drift_seconds = abs((occurred_at - server_time).total_seconds())
+            except TypeError as exc:
+                raise ValidationError("学习发生时间必须使用兼容的时区") from exc
+            require(drift_seconds <= 300, "学习发生时间与服务器时间相差过大")
+        # Scheduling must use server time. The optional client timestamp is only
+        # accepted as a small clock-skew check and is never trusted for review.
+        at = server_time
         stage = self.review_service.current_stage(user_id, card.knowledge_point_id)
         record = LearningRecord(
             id=new_id("learn"),
@@ -181,4 +205,3 @@ class LearningService:
 
     def known_knowledge_points(self, user_id: str) -> Set[str]:
         return {record.knowledge_point_id for record in self.records.for_user(user_id)}
-

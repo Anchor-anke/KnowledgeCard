@@ -54,7 +54,10 @@
             >
               <view class="card-meta">
                 <text class="card-index">{{ current + 1 }} / {{ cards.length }}</text>
-                <button class="feedback-button" @tap.stop="sendFeedback">反馈</button>
+                <view class="card-actions">
+                  <button class="recall-open-button" @tap.stop="openActiveRecall">主动回忆</button>
+                  <button class="feedback-button" @tap.stop="sendFeedback">反馈</button>
+                </view>
               </view>
               <text class="card-title">{{ currentCard.title }}</text>
               <view class="conclusion">
@@ -92,6 +95,80 @@
         <text class="muted">完成自评后，系统会在合适的时间安排复习。</text>
         <button class="secondary-button" @tap="loadEntry(true)">重新加载</button>
         <button class="secondary-button" @tap="resetDemo">重置演示数据</button>
+      </view>
+    </view>
+
+    <view v-if="activeRecall" class="recall-mask" @tap="closeActiveRecall">
+      <view
+        class="recall-sheet"
+        :style="{ paddingTop: (navTotalHeight + 20) + 'px' }"
+        @tap.stop
+      >
+        <view class="recall-header">
+          <view>
+            <text class="recall-eyebrow">ACTIVE RECALL</text>
+            <text class="recall-title">主动回忆</text>
+          </view>
+          <text v-if="!recallSubmitting" class="recall-close" @tap="closeActiveRecall">关闭</text>
+        </view>
+
+        <scroll-view class="recall-content" scroll-y :show-scrollbar="false">
+          <text class="recall-question-label">请先不看答案，写出你记得的内容</text>
+          <text class="recall-question">{{ currentCard.title }}</text>
+          <text v-if="currentCard.recallPrompt" class="recall-prompt">提示：{{ currentCard.recallPrompt }}</text>
+
+          <view v-if="!recallSubmitted" class="recall-answer-form">
+            <textarea
+              v-model="recallAnswer"
+              class="recall-input"
+              maxlength="2000"
+              auto-height
+              placeholder="把你记得的结论、原因或例子写下来…"
+            />
+            <text class="recall-input-hint">先独立回忆，再点击提交查看标准答案</text>
+            <button
+              class="primary-button recall-submit-button"
+              :disabled="!recallAnswer.trim() || recallSubmitting"
+              :loading="recallSubmitting"
+              @tap="submitRecallAnswer"
+            >提交答案</button>
+          </view>
+
+          <view v-else class="recall-comparison">
+            <view class="comparison-block my-answer-block">
+              <text class="comparison-label">我的回答</text>
+              <text class="comparison-text">{{ recallAnswer }}</text>
+            </view>
+            <view class="comparison-block correct-answer-block">
+              <text class="comparison-label">标准答案</text>
+              <text class="comparison-text correct-answer-text">{{ currentCard.conclusion }}</text>
+              <text v-if="currentCard.referenceAnswer" class="comparison-detail">
+                {{ currentCard.referenceAnswer }}
+              </text>
+              <text v-if="currentCard.explanation" class="comparison-detail">
+                {{ currentCard.explanation }}
+              </text>
+            </view>
+            <text class="recall-rating-title">对比后，你觉得自己掌握得怎么样？</text>
+            <view class="recall-rating-list">
+              <button
+                class="recall-rating recall-rating-remembered"
+                :disabled="recallSubmitting"
+                @tap="rateActiveRecall('REMEMBERED')"
+              >记住了</button>
+              <button
+                class="recall-rating recall-rating-partial"
+                :disabled="recallSubmitting"
+                @tap="rateActiveRecall('PARTIAL')"
+              >部分记住</button>
+              <button
+                class="recall-rating recall-rating-forgot"
+                :disabled="recallSubmitting"
+                @tap="rateActiveRecall('FORGOT')"
+              >没记住</button>
+            </view>
+          </view>
+        </scroll-view>
       </view>
     </view>
   </view>
@@ -132,7 +209,11 @@ export default {
       cardContentMoved: false,
       cardScrollTop: 0,
       touchStartX: 0,
-      touchStartY: 0
+      touchStartY: 0,
+      activeRecall: false,
+      recallAnswer: '',
+      recallSubmitted: false,
+      recallSubmitting: false
     }
   },
   computed: {
@@ -142,6 +223,7 @@ export default {
   },
   onShow() {
     Object.assign(this, getNavMetrics())
+    uni.showTabBar({ animation: false })
     this.skippedPointIds = []
     this.updateViewportHeight()
     this.loadEntry(true)
@@ -171,6 +253,10 @@ export default {
       // been opened. This prevents a brief loading-panel flash on iOS.
       this.loading = !this.cards.length
       this.groupCompleted = false
+      this.activeRecall = false
+      this.recallAnswer = ''
+      this.recallSubmitted = false
+      this.recallSubmitting = false
       api.getLearningEntry(this.skippedPointIds).then((entry) => {
         this.mode = entry.mode
         this.tasks = entry.tasks || []
@@ -188,6 +274,52 @@ export default {
       }).catch((error) => {
         this.loading = false
         showError(error, '学习任务加载失败')
+      })
+    },
+    openActiveRecall() {
+      if (!this.currentCard.id || this.submitting || this.committing) {
+        return
+      }
+      this.activeRecall = true
+      this.recallAnswer = ''
+      this.recallSubmitted = false
+      this.recallSubmitting = false
+      uni.hideTabBar({ animation: false })
+    },
+    closeActiveRecall() {
+      if (this.recallSubmitting) {
+        return
+      }
+      this.activeRecall = false
+      this.recallAnswer = ''
+      this.recallSubmitted = false
+      uni.showTabBar({ animation: false })
+    },
+    submitRecallAnswer() {
+      if (!this.recallAnswer.trim() || this.recallSubmitting) {
+        return
+      }
+      this.recallSubmitted = true
+    },
+    rateActiveRecall(rating) {
+      const card = this.currentCard
+      const answer = this.recallAnswer.trim()
+      if (!card.id || !answer || !this.recallSubmitted || this.recallSubmitting) {
+        return
+      }
+      const key = `${this.sessionId}:${card.id}:active-recall:${rating.toLowerCase()}:${Date.now()}`
+      this.recallSubmitting = true
+      api.submitRecall(card.id, this.sessionId, rating, answer, key).then((result) => {
+        this.recallSubmitting = false
+        this.activeRecall = false
+        this.recallAnswer = ''
+        this.recallSubmitted = false
+        uni.showTabBar({ animation: false })
+        this.lastFeedback = result.plan.reason
+        this.loadEntry(true)
+      }).catch((error) => {
+        this.recallSubmitting = false
+        showError(error, '主动回忆结果保存失败')
       })
     },
     onTouchStart(event) {
@@ -282,7 +414,7 @@ export default {
         (cardId) => cardId !== card.id
       )
       this.cardAnimation = `slide-not-remembered-${direction}`
-      this.submitRating('NOT_REMEMBERED', () => {
+      this.submitRating('FORGOT', () => {
         setTimeout(() => this.removeCurrentCard(), 320)
       })
     },
@@ -492,6 +624,12 @@ export default {
   justify-content: space-between;
 }
 
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .card-index {
   color: #829ab1;
   font-size: 24rpx;
@@ -589,6 +727,232 @@ export default {
 
 .feedback-button::after {
   border: 0;
+}
+
+.recall-open-button {
+  margin: 0;
+  padding: 0 18rpx;
+  border: 1rpx solid #9ac8ec;
+  border-radius: 26rpx;
+  background: #e6f6ff;
+  color: #1976d2;
+  font-size: 22rpx;
+  line-height: 52rpx;
+}
+
+.recall-open-button::after {
+  border: 0;
+}
+
+.recall-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  align-items: stretch;
+  background: #f4f8fc;
+}
+
+.recall-sheet {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 32rpx 32rpx 42rpx;
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.recall-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.recall-eyebrow {
+  display: block;
+  color: #1976d2;
+  font-size: 18rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.recall-title {
+  display: block;
+  margin-top: 8rpx;
+  color: #102a43;
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.recall-close {
+  flex-shrink: 0;
+  color: #1976d2;
+  font-size: 24rpx;
+}
+
+.recall-content {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  margin-top: 28rpx;
+}
+
+.recall-question-label,
+.recall-question,
+.recall-prompt,
+.recall-input-hint,
+.recall-rating-title {
+  display: block;
+}
+
+.recall-question-label {
+  color: #829ab1;
+  font-size: 22rpx;
+}
+
+.recall-question {
+  margin-top: 12rpx;
+  color: #102a43;
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.recall-prompt {
+  margin-top: 14rpx;
+  padding: 14rpx 18rpx;
+  border-left: 8rpx solid #f6ad55;
+  background: #fffaf0;
+  color: #8a5a18;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.recall-answer-form {
+  margin-top: 24rpx;
+}
+
+.recall-input {
+  width: 100%;
+  min-height: 220rpx;
+  box-sizing: border-box;
+  padding: 20rpx;
+  border: 1rpx solid #c9d9e8;
+  border-radius: 18rpx;
+  background: #f7fbfe;
+  color: #102a43;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.recall-input-hint {
+  margin-top: 10rpx;
+  color: #829ab1;
+  font-size: 20rpx;
+}
+
+.recall-submit-button {
+  width: 100%;
+}
+
+.recall-comparison {
+  margin-top: 24rpx;
+}
+
+.comparison-block {
+  padding: 20rpx;
+  border-radius: 18rpx;
+}
+
+.my-answer-block {
+  background: #f4f7fb;
+}
+
+.correct-answer-block {
+  margin-top: 16rpx;
+  background: #eaf8ef;
+}
+
+.comparison-label {
+  display: block;
+  color: #486581;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.comparison-text,
+.comparison-detail {
+  display: block;
+}
+
+.comparison-text {
+  margin-top: 10rpx;
+  color: #102a43;
+  font-size: 26rpx;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.correct-answer-text {
+  color: #276749;
+  font-weight: 700;
+}
+
+.comparison-detail {
+  margin-top: 10rpx;
+  color: #486581;
+  font-size: 23rpx;
+  line-height: 1.55;
+}
+
+.recall-rating-title {
+  margin-top: 26rpx;
+  color: #102a43;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.recall-rating-list {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.recall-rating {
+  flex: 1;
+  margin: 0;
+  padding: 0 10rpx;
+  border: 0;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  line-height: 76rpx;
+}
+
+.recall-rating::after {
+  border: 0;
+}
+
+.recall-rating-remembered {
+  background: #d9f2e2;
+  color: #276749;
+}
+
+.recall-rating-partial {
+  background: #fff1cf;
+  color: #8a5a18;
+}
+
+.recall-rating-forgot {
+  background: #fde4e4;
+  color: #9b2c2c;
 }
 
 .completion-panel {

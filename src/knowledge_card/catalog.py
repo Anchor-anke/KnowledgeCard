@@ -2,9 +2,9 @@
 
 from typing import Optional
 
-from .core import Clock, NotFoundError, ValidationError, new_id, require
-from .models import DomainEvent, KnowledgePoint
-from .repositories import EventRepository, KnowledgePointRepository
+from .core import AuthorizationError, Clock, NotFoundError, new_id, require
+from .models import DomainEvent, KnowledgePoint, Role
+from .repositories import KnowledgePointRepository
 
 
 class CatalogService:
@@ -13,12 +13,14 @@ class CatalogService:
         points: KnowledgePointRepository,
         events=None,
         clock: Optional[Clock] = None,
+        actor_roles=None,
     ):
         from .core import utc_now
 
         self.points = points
         self.events = events or (lambda event: None)
         self.clock = clock or utc_now
+        self.actor_roles = actor_roles or (lambda actor_id: ())
 
     def create_knowledge_point(
         self,
@@ -30,6 +32,7 @@ class CatalogService:
         objective: str,
         difficulty: str,
     ) -> KnowledgePoint:
+        self._require_role(actor_id, Role.EDITOR)
         for value, label in (
             (exam_id, "考试"),
             (domain, "领域"),
@@ -54,9 +57,12 @@ class CatalogService:
         self.points.save(item)
         return item
 
+    def _require_role(self, actor_id: str, role: Role) -> None:
+        if role not in tuple(self.actor_roles(actor_id)):
+            raise AuthorizationError("当前用户没有 {} 权限".format(role.value))
+
     def get(self, point_id: str) -> KnowledgePoint:
         item = self.points.get(point_id)
         if item is None:
             raise NotFoundError("知识点不存在")
         return item
-

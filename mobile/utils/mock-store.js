@@ -15,35 +15,35 @@ const COLLECTION_DEFINITIONS = [
         title: '全部知识',
         subtitle: '一次学习 CAPM 全部知识点',
         label: '完整',
-        matcher: () => true
+        matcher: (card) => card.imported !== true
       },
       {
         id: 'foundations',
         title: '项目管理基础',
         subtitle: '项目、治理、角色与核心管理概念',
         label: 'Domain 1',
-        matcher: (card) => card.sourceLocator.indexOf('Domain 1') === 0
+        matcher: (card) => card.imported !== true && card.sourceLocator.indexOf('Domain 1') === 0
       },
       {
         id: 'predictive',
         title: '预测型项目管理',
         subtitle: '范围、进度、成本与传统项目管理方法',
         label: 'Domain 2',
-        matcher: (card) => card.sourceLocator.indexOf('Domain 2') === 0
+        matcher: (card) => card.imported !== true && card.sourceLocator.indexOf('Domain 2') === 0
       },
       {
         id: 'agile',
         title: '敏捷与混合方法',
         subtitle: '敏捷原则、迭代交付与混合型项目实践',
         label: 'Domain 3',
-        matcher: (card) => card.sourceLocator.indexOf('Domain 3') === 0
+        matcher: (card) => card.imported !== true && card.sourceLocator.indexOf('Domain 3') === 0
       },
       {
         id: 'business-analysis',
         title: '商业分析',
         subtitle: '需求、交付成果与项目价值实现',
         label: 'Domain 4',
-        matcher: (card) => card.sourceLocator.indexOf('Domain 4') === 0
+        matcher: (card) => card.imported !== true && card.sourceLocator.indexOf('Domain 4') === 0
       }
     ]
   }
@@ -67,6 +67,7 @@ function createInitialState() {
       activeDeckId: 'capm-all'
     },
     cards: INITIAL_CARDS,
+    importedDecks: [],
     plans: {},
     completed: {},
     ratingByIdempotency: {},
@@ -82,6 +83,16 @@ function readState() {
     saveState(fresh)
     return fresh
   }
+  if (!Array.isArray(stored.importedDecks)) {
+    stored.importedDecks = []
+  }
+  if (!stored.plans || typeof stored.plans !== 'object') stored.plans = {}
+  if (!stored.completed || typeof stored.completed !== 'object') stored.completed = {}
+  if (!stored.ratingByIdempotency || typeof stored.ratingByIdempotency !== 'object') {
+    stored.ratingByIdempotency = {}
+  }
+  if (!Array.isArray(stored.records)) stored.records = []
+  if (!Array.isArray(stored.feedback)) stored.feedback = []
   return stored
 }
 
@@ -91,16 +102,40 @@ function saveState(state) {
   }
 }
 
-function getDeckDefinition(deckId) {
+function getImportedCollections(state) {
+  return (state.importedDecks || []).map((deck) => ({
+    id: `collection-${deck.id}`,
+    title: deck.title,
+    subtitle: deck.subtitle || '来自 PDF 的 AI 知识卡草稿',
+    label: 'AI 制卡',
+    coverMark: 'PDF',
+    decks: [
+      {
+        id: deck.id,
+        title: deck.title,
+        subtitle: `${deck.cardCount || 0} 张知识卡 · ${deck.sourceName || 'PDF'}`,
+        label: 'PDF',
+        matcher: (card) => card.importedDeckId === deck.id
+      }
+    ]
+  }))
+}
+
+function getAllCollections(state) {
+  return COLLECTION_DEFINITIONS.concat(getImportedCollections(state))
+}
+
+function getDeckDefinition(deckId, state) {
   const normalizedId = deckId === 'all' ? 'capm-all' : deckId
   return (
-    DECK_DEFINITIONS.find((deck) => deck.id === normalizedId) ||
-    DECK_DEFINITIONS[0]
+    getAllCollections(state)
+      .reduce((result, collection) => result.concat(collection.decks), [])
+      .find((deck) => deck.id === normalizedId) || DECK_DEFINITIONS[0]
   )
 }
 
 function getCardsForDeck(state, deckId) {
-  const deck = getDeckDefinition(deckId || state.user.activeDeckId)
+  const deck = getDeckDefinition(deckId || state.user.activeDeckId, state)
   return state.cards.filter((card) => deck.matcher(card))
 }
 
@@ -169,8 +204,8 @@ export const api = {
 
   getLibrary() {
     const state = readState()
-    const activeDeckId = getDeckDefinition(state.user.activeDeckId).id
-    const collections = COLLECTION_DEFINITIONS.map((collection) => {
+    const activeDeckId = getDeckDefinition(state.user.activeDeckId, state).id
+    const collections = getAllCollections(state).map((collection) => {
       const decks = collection.decks.map((deck) => ({
         id: deck.id,
         title: deck.title,
@@ -195,7 +230,7 @@ export const api = {
 
   setActiveDeck(deckId) {
     const state = readState()
-    state.user.activeDeckId = getDeckDefinition(deckId).id
+    state.user.activeDeckId = getDeckDefinition(deckId, state).id
     saveState(state)
     return Promise.resolve(state.user)
   },
@@ -239,6 +274,48 @@ export const api = {
     })
   },
 
+  saveImportedDeck(draft) {
+    const state = readState()
+    const sourceName = String(draft && draft.sourceName ? draft.sourceName : '').trim()
+    const title = String(draft && draft.title ? draft.title : '').trim() || sourceName || 'PDF 知识卡'
+    const deckId = `pdf-${Date.now()}`
+    const rawCards = Array.isArray(draft && draft.cards) ? draft.cards.slice(0, 20) : []
+    const cards = rawCards.map((item, index) => ({
+      id: `pdf-card-${Date.now()}-${index}-v1`,
+      cardId: `pdf-card-${Date.now()}-${index}`,
+      knowledgePointId: `pdf-kp-${deckId}-${index}`,
+      version: 1,
+      title: String(item.title || `知识点 ${index + 1}`),
+      conclusion: String(item.conclusion || ''),
+      explanation: String(item.explanation || ''),
+      example: String(item.example || '资料中未提供例子。'),
+      recallPrompt: String(item.recall_prompt || item.recallPrompt || '请回忆这个知识点的核心结论。'),
+      referenceAnswer: String(item.reference_answer || item.referenceAnswer || item.conclusion || ''),
+      source: sourceName || 'PDF AI 制卡',
+      sourceLocator: String(item.source_locator || item.sourceLocator || 'PDF'),
+      imported: true,
+      importedDeckId: deckId
+    }))
+    if (!cards.length) {
+      return Promise.reject(new Error('AI 没有生成可保存的知识卡'))
+    }
+    state.cards = cards.concat(state.cards || [])
+    state.importedDecks = [
+      {
+        id: deckId,
+        title,
+        subtitle: String(draft.summary || '由 PDF 内容生成的可复习知识卡'),
+        sourceName: sourceName || 'document.pdf',
+        cardCount: cards.length,
+        createdAt: new Date().toISOString()
+      },
+      ...(state.importedDecks || [])
+    ]
+    state.user.activeDeckId = deckId
+    saveState(state)
+    return Promise.resolve(state.importedDecks[0])
+  },
+
   completeCard(cardVersionId, sessionId) {
     const state = readState()
     state.completed[`${sessionId}:${cardVersionId}`] = true
@@ -246,7 +323,27 @@ export const api = {
     return Promise.resolve({ completed: true })
   },
 
-  submitRating(cardVersionId, sessionId, rating, idempotencyKey, correctionOf) {
+  submitRecall(cardVersionId, sessionId, rating, answer, idempotencyKey) {
+    return this.completeCard(cardVersionId, sessionId).then(() =>
+      this.submitRating(
+        cardVersionId,
+        sessionId,
+        rating,
+        idempotencyKey,
+        null,
+        answer
+      )
+    )
+  },
+
+  submitRating(
+    cardVersionId,
+    sessionId,
+    rating,
+    idempotencyKey,
+    correctionOf,
+    selfAnswer
+  ) {
     const state = readState()
     if (state.ratingByIdempotency[idempotencyKey]) {
       return Promise.resolve(state.ratingByIdempotency[idempotencyKey])
@@ -278,6 +375,14 @@ export const api = {
         stage: remembered.consecutiveRemembered >= 3 ? 'STABLE' : 'CONSOLIDATING'
       }
       reason = `记住了：${remembered.intervalDays} 天后复习`
+    } else if (rating === 'PARTIAL') {
+      schedule = {
+        nextReviewAt: addDays(reviewedAt, 1),
+        intervalDays: 1,
+        consecutiveRemembered: 0,
+        stage: 'CONSOLIDATING'
+      }
+      reason = '部分记住：1 天后再次复习'
     }
 
     const record = {
@@ -288,7 +393,9 @@ export const api = {
       rating,
       occurredAt: reviewedAt.toISOString(),
       idempotencyKey,
-      correctionOf: correctionOf || null
+      correctionOf: correctionOf || null,
+      reviewMode: selfAnswer ? 'ACTIVE_RECALL' : 'CARD_SWIPE',
+      selfAnswer: selfAnswer || ''
     }
     state.records.push(record)
     state.ratingByIdempotency[idempotencyKey] = record

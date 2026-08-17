@@ -50,7 +50,12 @@ class KnowledgeCardApplication:
         self.identity = IdentityService(
             self.users, self.analytics.record, self.clock, self.audits
         )
-        self.catalog = CatalogService(self.points, self.analytics.record, self.clock)
+        self.catalog = CatalogService(
+            self.points,
+            self.analytics.record,
+            self.clock,
+            actor_roles=self._roles_for,
+        )
         self.content = ContentService(
             self.cards,
             self.points,
@@ -130,6 +135,7 @@ class KnowledgeCardApplication:
         return {"mode": "NEW", "tasks": [], "cards": cards}
 
     def complete_card(self, user_id: str, session_id: str, card_version_id: str) -> bool:
+        self._require_learner(user_id)
         return self.learning.complete_card(user_id, session_id, card_version_id)
 
     def submit_rating(
@@ -143,6 +149,7 @@ class KnowledgeCardApplication:
         correction_of: Optional[str] = None,
         occurred_at=None,
     ):
+        self._require_learner(user_id)
         return self.learning.submit_rating(
             user_id,
             session_id,
@@ -157,6 +164,7 @@ class KnowledgeCardApplication:
     # API gateway: settings and reminders
     def get_due_reviews(self, user_id: str, at=None):
         user = self._user(user_id)
+        require(user.onboarding_completed, "请先完成新手引导")
         return self.review.get_due_reviews(user_id, at, user.review_limit)
 
     def get_study_settings(self, user_id: str):
@@ -233,6 +241,11 @@ class KnowledgeCardApplication:
             raise NotFoundError("用户不存在")
         return user
 
+    def _require_learner(self, user_id: str) -> User:
+        user = self._user(user_id)
+        require(user.onboarding_completed, "请先完成新手引导")
+        return user
+
     @staticmethod
     def _event(name, occurred_at, payload):
         from .models import DomainEvent
@@ -245,4 +258,3 @@ class KnowledgeCardApplication:
         user.roles = tuple(dict.fromkeys(roles))
         self.users.save(user)
         return user
-

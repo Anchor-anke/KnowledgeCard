@@ -127,6 +127,51 @@ class MvpTestCase(unittest.TestCase):
         self.assertEqual(self.app.get_learning_entry(self.user.id)["cards"], [])
         self.app.content.submit_for_review(self.editor.id, draft.id, "req")
         self.assertEqual(self.app.get_learning_entry(self.user.id)["cards"], [])
+        with self.assertRaises(ValidationError):
+            self.app.complete_card(self.user.id, "session", draft.id)
+
+    def test_catalog_creation_requires_editor_role(self):
+        with self.assertRaises(AuthorizationError):
+            self.app.create_knowledge_point(
+                self.user.id,
+                exam_id="CAPM",
+                domain="d",
+                topic="t",
+                chapter="c",
+                objective="o",
+                difficulty="EASY",
+            )
+
+    def test_idempotency_key_cannot_be_reused_for_a_different_rating(self):
+        draft = self.make_draft()
+        self.publish(draft)
+        card = self.app.get_learning_entry(self.user.id)["cards"][0]
+        self.app.complete_card(self.user.id, "s", card.id)
+        self.app.submit_rating(self.user.id, "s", card.id, Rating.REMEMBERED, "same-key")
+        with self.assertRaises(ConflictError):
+            self.app.submit_rating(self.user.id, "s", card.id, Rating.FORGOT, "same-key")
+
+    def test_invalid_review_does_not_mutate_review_metadata(self):
+        draft = self.make_draft()
+        with self.assertRaises(ValidationError):
+            self.app.content.approve(self.reviewer.id, draft.id, "不应通过", "req")
+        self.assertIsNone(draft.reviewed_by)
+        self.assertIsNone(draft.review_reason)
+
+    def test_client_timestamp_is_only_allowed_with_small_clock_skew(self):
+        draft = self.make_draft()
+        self.publish(draft)
+        card = self.app.get_learning_entry(self.user.id)["cards"][0]
+        self.app.complete_card(self.user.id, "s", card.id)
+        with self.assertRaises(ValidationError):
+            self.app.submit_rating(
+                self.user.id,
+                "s",
+                card.id,
+                Rating.REMEMBERED,
+                "future-rating",
+                occurred_at=self.clock.value + timedelta(days=1),
+            )
 
     def test_workflow_roles_and_audit_chain(self):
         draft = self.make_draft()
@@ -206,6 +251,15 @@ class MvpTestCase(unittest.TestCase):
             self.app.create_daily_reminder(self.user.id, self.clock.value).id,
         )
 
+    def test_failed_reminder_can_retry_on_the_same_day(self):
+        self.app.request_subscription(self.user.id, True)
+        self.app.wechat.fail_next = True
+        failed = self.app.create_daily_reminder(self.user.id, self.clock.value)
+        self.assertEqual(failed.status, "FAILED")
+        retried = self.app.create_daily_reminder(self.user.id, self.clock.value)
+        self.assertEqual(retried.status, "SENT")
+        self.assertEqual(len(self.app.wechat.sent), 1)
+
     def test_key_events_are_recorded_without_being_required_by_domain(self):
         draft = self.make_draft()
         self.publish(draft)
@@ -222,4 +276,3 @@ class MvpTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

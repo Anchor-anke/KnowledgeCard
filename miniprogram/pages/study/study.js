@@ -264,7 +264,7 @@ Page({
       cardAnimation: `slide-not-remembered-${direction}`,
       pendingRememberedCardIds: pendingIds
     })
-    this.submitRating('NOT_REMEMBERED', () => {
+    this.submitRating('FORGOT', () => {
       setTimeout(() => this.removeCurrentCard(), 320)
     })
   },

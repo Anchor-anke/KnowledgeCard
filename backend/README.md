@@ -14,8 +14,9 @@
 
 - 仅用于本地测试，重启后任务和结果会清空；
 - PDF 暂不支持扫描件和 OCR；
-- 暂无正式登录、数据库、对象存储和权限隔离；
+- 暂无正式登录、数据库和对象存储；当前任务已按用户身份隔离，正式环境应由已认证的登录网关提供签名身份；
 - API Key 只从本地环境变量读取，不能提交到 Git。
+- 每个任务要求携带 `X-User-ID`，任务只能由创建者查询。开发环境允许未签名身份；共享环境必须配置 `USER_ID_SIGNING_SECRET`，由已认证的网关生成 `X-User-Signature`。
 
 ## 启动
 
@@ -55,6 +56,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/summaries/text \
+  -H 'X-User-ID: demo-user' \
   -H 'Content-Type: application/json' \
   -d '{"title":"项目管理基础","text":"项目是临时性的工作，运营是持续性的工作。项目有明确的开始和结束。"}'
 ```
@@ -62,13 +64,16 @@ curl -X POST http://127.0.0.1:8000/api/v1/summaries/text \
 响应中的 `task_id` 用于查询：
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/summaries/summary_xxx
+# 查询时需要携带创建任务用户的身份：
+curl http://127.0.0.1:8000/api/v1/summaries/summary_xxx \
+  -H 'X-User-ID: demo-user'
 ```
 
 ## 测试 PDF 总结
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/summaries/pdf \
+  -H 'X-User-ID: demo-user' \
   -F 'title=我的学习资料' \
   -F 'file=@/绝对路径/资料.pdf'
 ```

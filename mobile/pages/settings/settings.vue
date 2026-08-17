@@ -94,6 +94,31 @@
       </view>
 
       <view class="card-panel settings-panel">
+        <text class="section-label">PDF 制卡服务</text>
+        <view class="api-setting-block">
+          <text class="setting-title">服务地址</text>
+          <input
+            v-model="apiBaseUrl"
+            class="api-input"
+            placeholder="例如 http://192.168.1.10:8000"
+            @blur="saveApiConfig"
+            @confirm="saveApiConfig"
+          />
+          <text class="muted api-hint">Android 模拟器默认使用 10.0.2.2；真机请填电脑的局域网 IP。</text>
+        </view>
+        <view class="api-setting-block">
+          <text class="setting-title">本地用户标识</text>
+          <input
+            v-model="apiUserId"
+            class="api-input"
+            placeholder="mobile-user-1"
+            @blur="saveApiConfig"
+            @confirm="saveApiConfig"
+          />
+        </view>
+      </view>
+
+      <view class="card-panel settings-panel">
         <text class="section-label">关于</text>
 
         <view class="setting-row" @tap="sendFeedback">
@@ -117,6 +142,7 @@
 <script>
 import { api } from '../../utils/mock-store'
 import { getNavMetrics, showError } from '../../utils/layout'
+import { getApiConfig, updateApiConfig } from '../../utils/api'
 
 export default {
   data() {
@@ -131,11 +157,16 @@ export default {
       activeDeckTitle: 'CAPM · 全部知识',
       newCardInput: '10',
       reviewInput: '20',
+      apiBaseUrl: '',
+      apiUserId: 'mobile-user-1',
       ...navMetrics
     }
   },
   onShow() {
     Object.assign(this, getNavMetrics())
+    const apiConfig = getApiConfig()
+    this.apiBaseUrl = apiConfig.baseUrl
+    this.apiUserId = apiConfig.userId
     this.load()
   },
   methods: {
@@ -191,6 +222,15 @@ export default {
         this.reviewInput = String(user.reviewLimit)
         uni.showToast({ title: '已更新每日复习', icon: 'none' })
       })
+    },
+    saveApiConfig() {
+      const config = updateApiConfig({
+        baseUrl: this.apiBaseUrl,
+        userId: this.apiUserId
+      })
+      this.apiBaseUrl = config.baseUrl
+      this.apiUserId = config.userId
+      uni.showToast({ title: '制卡服务配置已保存', icon: 'none' })
     },
     onReminderChange(event) {
       const reminderTime = event.detail.value
@@ -358,6 +398,36 @@ export default {
 .limit-unit {
   color: #829ab1;
   font-size: 22rpx;
+}
+
+.api-setting-block {
+  padding: 14rpx 0 18rpx;
+  border-bottom: 1rpx solid #e6eef5;
+}
+
+.api-setting-block:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.api-input {
+  width: 100%;
+  height: 72rpx;
+  box-sizing: border-box;
+  margin-top: 12rpx;
+  padding: 0 18rpx;
+  border: 1rpx solid #d9eaf7;
+  border-radius: 14rpx;
+  background: #f7fbfe;
+  color: #1976d2;
+  font-size: 23rpx;
+}
+
+.api-hint {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  line-height: 1.45;
 }
 
 .about-block {

@@ -47,7 +47,10 @@ class NotificationService:
         now = at or self.clock()
         local_date = now.astimezone(ZoneInfo(user.timezone)).date().isoformat()
         existing = self.notifications.get(user_id, local_date)
-        if existing is not None:
+        if existing is not None and not (
+            existing.status == "FAILED"
+            or (existing.status == "SKIPPED_UNAUTHORIZED" and user.subscription_authorized)
+        ):
             return existing
         due = self.review_service.get_due_reviews(user_id, now)
         if not user.subscription_authorized:
@@ -86,4 +89,3 @@ class NotificationService:
             )
         )
         return task
-
