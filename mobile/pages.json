@@ -48,17 +48,17 @@
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "知识卡",
-    "navigationBarBackgroundColor": "#F4F7FB",
-    "backgroundColor": "#F4F7FB",
+    "navigationBarBackgroundColor": "#F5F6FA",
+    "backgroundColor": "#F5F6FA",
     "backgroundTextStyle": "light",
     "app-plus": {
-      "background": "#F4F7FB",
+      "background": "#F5F6FA",
       "popGesture": "close"
     }
   },
   "tabBar": {
-    "color": "#829AB1",
-    "selectedColor": "#1976D2",
+    "color": "#657086",
+    "selectedColor": "#3659D9",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [

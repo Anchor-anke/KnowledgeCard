@@ -6,7 +6,7 @@ export function getNavMetrics() {
     info = {}
   }
 
-  const statusBarHeight = Number(info.statusBarHeight || 20)
+  const statusBarHeight = Number.isFinite(info.statusBarHeight) ? info.statusBarHeight : 20
   const navBarHeight = 44
   return {
     statusBarHeight,

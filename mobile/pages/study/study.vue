@@ -1,50 +1,86 @@
 <template>
-  <view class="page study-page">
-    <view class="custom-nav" :style="{ height: navTotalHeight + 'px' }">
-      <view :style="{ height: statusBarHeight + 'px' }"></view>
+  <view class="page study-page" :style="{ height: viewportHeight + 'px' }">
+    <view v-show="!activeRecall" class="custom-nav" :style="{ height: navTotalHeight + 'px' }">
+      <view :style="{ height: statusBarHeight + 'px' }">
+      </view>
       <view
         class="custom-nav-bar"
         :style="{ height: navBarHeight + 'px' }"
       >
         <view class="nav-title-wrap">
-          <view class="nav-eyebrow">STUDY</view>
-          <view class="nav-title">学习卡流</view>
+          <view class="nav-eyebrow">
+            STUDY
+          </view>
+          <view class="nav-title">
+            专注学习
+          </view>
         </view>
       </view>
     </view>
-
-    <view class="study-body" :style="{ paddingTop: navTotalHeight + 'px' }">
+    <view v-show="!activeRecall" class="study-body" :style="{ paddingTop: navTotalHeight + 'px' }">
       <view v-if="loading" class="empty-panel card-panel">
-        <text class="muted">正在加载学习任务…</text>
+        <text class="muted">
+          正在加载学习任务…
+        </text>
       </view>
-
       <view v-else-if="groupCompleted" class="completion-panel card-panel">
-        <text class="completion-eyebrow">本组学习完成</text>
-        <text class="completion-title">这组知识点已经记下来了</text>
-        <text class="completion-summary">{{ lastFeedback }}</text>
-        <button
+        <text class="completion-eyebrow">
+          本组学习完成
+        </text>
+        <text class="completion-title">
+          完成一组，积累一点。
+        </text>
+        <text class="completion-summary">
+          {{ lastFeedback }}
+        </text>
+        <button role="button"
           class="primary-button completion-button"
           :loading="committing"
-          :disabled="committing"
+          :disabled="committing" :aria-disabled="committing"
           @tap="loadEntry(true)"
-        >继续学习</button>
+        >
+          继续学习
+        </button>
       </view>
-
-      <view v-else-if="cards.length">
+      <view v-else-if="cards.length" class="study-session">
+        <view class="session-heading">
+          <text class="session-mode">
+            {{ mode === 'REVIEW' ? '到期复习' : '新卡学习' }}
+          </text>
+          <text class="session-position">
+            第 {{ current + 1 }} 张
+            <text class="position-total">
+              / 共 {{ cards.length }} 张
+            </text>
+          </text>
+        </view>
+        <view class="session-progress" aria-hidden="true">
+          <view :style="{ width: ((current + 1) / cards.length * 100) + '%' }">
+          </view>
+        </view>
         <view
           class="card-viewport"
-          :style="{ height: cardViewportHeight + 'px' }"
           @touchstart="onTouchStart"
           @touchend="onTouchEnd"
         >
           <view
             :class="['knowledge-card', cardAnimation]"
-            :style="{
-              minHeight: cardMinHeight + 'px',
-              maxHeight: cardContentMaxHeight + 'px'
-            }"
           >
+            <view class="card-meta">
+                <text class="card-index">
+                  知识卡
+                </text>
+                <view class="card-actions">
+                  <button role="button" class="recall-open-button" @tap.stop="openActiveRecall">
+                    主动回忆
+                  </button>
+                  <button role="button" class="feedback-button" @tap.stop="sendFeedback">
+                    反馈
+                  </button>
+                </view>
+              </view>
             <scroll-view
+              :key="currentCard.id"
               class="card-content"
               scroll-y
               :bounces="false"
@@ -52,29 +88,40 @@
               :scroll-top="scrollTop"
               @scroll="onCardScroll"
             >
-              <view class="card-meta">
-                <text class="card-index">{{ current + 1 }} / {{ cards.length }}</text>
-                <view class="card-actions">
-                  <button class="recall-open-button" @tap.stop="openActiveRecall">主动回忆</button>
-                  <button class="feedback-button" @tap.stop="sendFeedback">反馈</button>
-                </view>
-              </view>
-              <text class="card-title">{{ currentCard.title }}</text>
+              <text class="card-title">
+                {{ currentCard.title }}
+              </text>
               <view class="conclusion">
-                <text class="label">一句话结论</text>
-                <text class="conclusion-text">{{ currentCard.conclusion }}</text>
+                <text class="label">
+                  一句话结论
+                </text>
+                <text class="conclusion-text">
+                  {{ currentCard.conclusion }}
+                </text>
               </view>
               <view class="content-section">
-                <text class="label">解释</text>
-                <text class="body-text">{{ currentCard.explanation }}</text>
+                <text class="label">
+                  解释
+                </text>
+                <text class="body-text">
+                  {{ currentCard.explanation }}
+                </text>
               </view>
               <view class="content-section">
-                <text class="label">例子</text>
-                <text class="body-text">{{ currentCard.example }}</text>
+                <text class="label">
+                  例子
+                </text>
+                <text class="body-text">
+                  {{ currentCard.example }}
+                </text>
               </view>
               <view class="recall-section">
-                <text class="label">回忆提示</text>
-                <text class="body-text">{{ currentCard.recallPrompt }}</text>
+                <text class="label">
+                  回忆提示
+                </text>
+                <text class="body-text">
+                  {{ currentCard.recallPrompt }}
+                </text>
               </view>
             </scroll-view>
             <view class="source">
@@ -83,65 +130,106 @@
               </text>
             </view>
           </view>
-          <view class="gesture-hint">
-            <text>↑↓ 记住了</text>
-            <text>←→ 没记住</text>
-          </view>
         </view>
+        <view class="study-controls">
+          <button role="button" class="study-control previous-control" :disabled="current === 0 || interactionBusy" :aria-disabled="current === 0 || interactionBusy" @tap="previousCard">
+            上一张
+          </button>
+          <button role="button" class="study-control forgot-control" :disabled="interactionBusy" :aria-disabled="interactionBusy" @tap="submitNotRemembered('left')">
+            没记住
+          </button>
+          <button role="button" class="study-control next-control" :disabled="interactionBusy" :aria-disabled="interactionBusy" @tap="advanceCard">
+            {{ current === cards.length - 1 ? '完成本组' : '下一张' }}
+            <text aria-hidden="true">
+              →
+            </text>
+          </button>
+        </view>
+        <text class="gesture-hint">
+          上下滑动切卡 · 整组完成后保存已读卡片的自评
+        </text>
       </view>
-
       <view v-else class="empty-panel card-panel">
-        <text class="empty-title">暂时没有更多卡片</text>
-        <text class="muted">完成自评后，系统会在合适的时间安排复习。</text>
-        <button class="secondary-button" @tap="loadEntry(true)">重新加载</button>
-        <button class="secondary-button" @tap="resetDemo">重置演示数据</button>
+        <text class="empty-title">
+          这一轮，先学到这里
+        </text>
+        <text class="muted">
+          可以换一组内容继续，也可以休息一下，等待下一次复习。
+        </text>
+        <button role="button" class="secondary-button" @tap="loadEntry(true)">
+          重新加载
+        </button>
+        <button role="button" class="secondary-button" @tap="openLibrary">
+          返回知识库
+        </button>
       </view>
     </view>
-
     <view v-if="activeRecall" class="recall-mask" @tap="closeActiveRecall">
       <view
         class="recall-sheet"
-        :style="{ paddingTop: (navTotalHeight + 20) + 'px' }"
+        :style="{ paddingTop: (statusBarHeight + 20) + 'px' }"
         @tap.stop
       >
         <view class="recall-header">
           <view>
-            <text class="recall-eyebrow">ACTIVE RECALL</text>
-            <text class="recall-title">主动回忆</text>
+            <text class="recall-eyebrow">
+              留一点时间，独立想一想
+            </text>
+            <text class="recall-title">
+              主动回忆
+            </text>
           </view>
-          <text v-if="!recallSubmitting" class="recall-close" @tap="closeActiveRecall">关闭</text>
+          <button role="button" v-if="!recallSubmitting" class="recall-close" @tap="closeActiveRecall">
+            关闭
+          </button>
         </view>
-
         <scroll-view class="recall-content" scroll-y :show-scrollbar="false">
-          <text class="recall-question-label">请先不看答案，写出你记得的内容</text>
-          <text class="recall-question">{{ currentCard.title }}</text>
-          <text v-if="currentCard.recallPrompt" class="recall-prompt">提示：{{ currentCard.recallPrompt }}</text>
-
+          <text class="recall-question-label">
+            先回忆，再看答案
+          </text>
+          <text class="recall-question">
+            {{ currentCard.title }}
+          </text>
+          <text v-if="currentCard.recallPrompt" class="recall-prompt">
+            提示：{{ currentCard.recallPrompt }}
+          </text>
           <view v-if="!recallSubmitted" class="recall-answer-form">
             <textarea
               v-model="recallAnswer"
               class="recall-input"
+              aria-label="我的回忆答案"
               maxlength="2000"
               auto-height
               placeholder="把你记得的结论、原因或例子写下来…"
             />
-            <text class="recall-input-hint">先独立回忆，再点击提交查看标准答案</text>
-            <button
+            <text class="recall-input-hint">
+              先独立回忆，再点击提交查看标准答案
+            </text>
+            <button role="button"
               class="primary-button recall-submit-button"
-              :disabled="!recallAnswer.trim() || recallSubmitting"
+              :disabled="!recallAnswer.trim() || recallSubmitting" :aria-disabled="!recallAnswer.trim() || recallSubmitting"
               :loading="recallSubmitting"
               @tap="submitRecallAnswer"
-            >提交答案</button>
+            >
+              提交答案
+            </button>
           </view>
-
           <view v-else class="recall-comparison">
             <view class="comparison-block my-answer-block">
-              <text class="comparison-label">我的回答</text>
-              <text class="comparison-text">{{ recallAnswer }}</text>
+              <text class="comparison-label">
+                我的回答
+              </text>
+              <text class="comparison-text">
+                {{ recallAnswer }}
+              </text>
             </view>
             <view class="comparison-block correct-answer-block">
-              <text class="comparison-label">标准答案</text>
-              <text class="comparison-text correct-answer-text">{{ currentCard.conclusion }}</text>
+              <text class="comparison-label">
+                标准答案
+              </text>
+              <text class="comparison-text correct-answer-text">
+                {{ currentCard.conclusion }}
+              </text>
               <text v-if="currentCard.referenceAnswer" class="comparison-detail">
                 {{ currentCard.referenceAnswer }}
               </text>
@@ -149,23 +237,31 @@
                 {{ currentCard.explanation }}
               </text>
             </view>
-            <text class="recall-rating-title">对比后，你觉得自己掌握得怎么样？</text>
+            <text class="recall-rating-title">
+              对比后，你觉得自己掌握得怎么样？
+            </text>
             <view class="recall-rating-list">
-              <button
+              <button role="button"
                 class="recall-rating recall-rating-remembered"
-                :disabled="recallSubmitting"
+                :disabled="recallSubmitting" :aria-disabled="recallSubmitting"
                 @tap="rateActiveRecall('REMEMBERED')"
-              >记住了</button>
-              <button
+              >
+                记住了
+              </button>
+              <button role="button"
                 class="recall-rating recall-rating-partial"
-                :disabled="recallSubmitting"
+                :disabled="recallSubmitting" :aria-disabled="recallSubmitting"
                 @tap="rateActiveRecall('PARTIAL')"
-              >部分记住</button>
-              <button
+              >
+                部分记住
+              </button>
+              <button role="button"
                 class="recall-rating recall-rating-forgot"
-                :disabled="recallSubmitting"
+                :disabled="recallSubmitting" :aria-disabled="recallSubmitting"
                 @tap="rateActiveRecall('FORGOT')"
-              >没记住</button>
+              >
+                没记住
+              </button>
             </view>
           </view>
         </scroll-view>
@@ -197,9 +293,7 @@ export default {
       groupId: '',
       scrollTop: 0,
       ...navMetrics,
-      cardMinHeight: 384,
-      cardContentMaxHeight: 480,
-      cardViewportHeight: 480,
+      viewportHeight: 667,
       cardAnimation: '',
       loading: true,
       submitting: false,
@@ -217,6 +311,9 @@ export default {
     }
   },
   computed: {
+    interactionBusy() {
+      return this.submitting || this.committing || Boolean(this.cardAnimation)
+    },
     currentCard() {
       return this.cards[this.current] || {}
     }
@@ -228,6 +325,15 @@ export default {
     this.updateViewportHeight()
     this.loadEntry(true)
   },
+  onResize() {
+    Object.assign(this, getNavMetrics())
+    this.updateViewportHeight()
+  },
+  onBackPress() {
+    if (!this.activeRecall) return false
+    this.closeActiveRecall()
+    return true
+  },
   methods: {
     updateViewportHeight() {
       let windowHeight = 667
@@ -237,13 +343,14 @@ export default {
       } catch (error) {
         // Keep the safe fallback for preview environments.
       }
-      const availableHeight = Math.max(
-        360,
-        Math.floor(windowHeight - this.navTotalHeight - 92)
-      )
-      this.cardViewportHeight = availableHeight
-      this.cardContentMaxHeight = availableHeight - 24
-      this.cardMinHeight = Math.floor(this.cardContentMaxHeight * 0.8)
+      this.viewportHeight = windowHeight
+    },
+    openLibrary() {
+      uni.switchTab({ url: '/pages/library/library' })
+    },
+    advanceCard() {
+      if (this.interactionBusy) return
+      this.nextCard(this.rememberCurrentForGroup())
     },
     loadEntry(resetSkipped = false) {
       if (resetSkipped) {
@@ -340,7 +447,7 @@ export default {
       }
     },
     onTouchEnd(event) {
-      if (this.submitting || this.committing || this.cardContentMoved) {
+      if (this.submitting || this.committing || this.cardAnimation || this.cardContentMoved) {
         this.cardContentMoved = false
         return
       }
@@ -391,7 +498,7 @@ export default {
       this.finishGroup(pendingIds || this.pendingRememberedCardIds)
     },
     previousCard() {
-      if (this.current <= 0) {
+      if (this.interactionBusy || this.current <= 0) {
         return
       }
       const previousCard = this.cards[this.current - 1]
@@ -407,7 +514,7 @@ export default {
     },
     submitNotRemembered(direction) {
       const card = this.cards[this.current]
-      if (!card || this.submitting || this.committing) {
+      if (!card || this.submitting || this.committing || this.cardAnimation) {
         return
       }
       this.pendingRememberedCardIds = this.pendingRememberedCardIds.filter(
@@ -492,81 +599,99 @@ export default {
           }
         }
       })
-    },
-    resetDemo() {
-      api.reset().then(() => {
-        uni.reLaunch({ url: '/pages/index/index' })
-      })
     }
   }
 }
 </script>
 
-<style>
+<style scoped>
 .study-page {
-  position: relative;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100vh;
-  min-height: 100vh;
-  max-height: 100vh;
-  box-sizing: border-box;
-  overflow: hidden;
-  padding: 0 32rpx 24rpx;
-  background:
-    radial-gradient(circle at 100% 8%, rgba(25, 118, 210, 0.09), transparent 32%),
-    radial-gradient(circle at 0% 82%, rgba(246, 173, 85, 0.08), transparent 28%),
-    #f4f7fb;
-}
-
-.study-body {
-  flex: 1;
   min-height: 0;
-  overflow: hidden;
   box-sizing: border-box;
+  overflow: hidden;
+  padding: 0 32rpx;
 }
-
-.card-viewport {
-  position: relative;
+.study-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 12rpx;
+}
+.study-session {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-top: 16rpx;
+}
+.session-heading {
   display: flex;
   align-items: center;
-  min-height: 0;
-  margin-top: 8rpx;
-  overflow: hidden;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 16rpx;
+  font-size: clamp(12px, 25rpx, 15px);
 }
-
-.knowledge-card {
-  position: relative;
-  z-index: 1;
+.session-mode {
+  color: var(--kc-primary);
+  font-weight: 600;
+}
+.session-position {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.position-total {
+  color: var(--kc-muted);
+  font-weight: 400;
+}
+.session-progress {
+  flex-shrink: 0;
+  height: 5rpx;
+  margin-top: 15rpx;
+  overflow: hidden;
+  border-radius: 8rpx;
+  background: #e2e7f1;
+}
+.session-progress > view {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--kc-primary);
+}
+.card-viewport {
   display: flex;
-  flex-direction: column;
-  width: 100%;
-  overflow: hidden;
-  border: 1rpx solid rgba(217, 226, 236, 0.8);
-  border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow:
-    0 18rpx 42rpx rgba(16, 42, 67, 0.09),
-    0 2rpx 6rpx rgba(16, 42, 67, 0.04);
+  flex: 1;
+  min-height: 0;
+  margin: 22rpx 0;
 }
-
+.knowledge-card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1rpx solid var(--kc-line);
+  border-radius: 28rpx;
+  background: var(--kc-surface);
+}
 .knowledge-card.slide-next {
   animation: card-slide-next 280ms ease-out;
 }
-
 .knowledge-card.slide-previous {
   animation: card-slide-previous 280ms ease-out;
 }
-
 .knowledge-card.slide-not-remembered-left {
   animation: card-swipe-left 320ms ease-out forwards;
 }
-
 .knowledge-card.slide-not-remembered-right {
   animation: card-swipe-right 320ms ease-out forwards;
 }
-
 @keyframes card-slide-next {
   from {
     opacity: 0;
@@ -577,7 +702,6 @@ export default {
     transform: translateY(0);
   }
 }
-
 @keyframes card-slide-previous {
   from {
     opacity: 0;
@@ -588,7 +712,6 @@ export default {
     transform: translateY(0);
   }
 }
-
 @keyframes card-swipe-left {
   from {
     opacity: 1;
@@ -599,7 +722,6 @@ export default {
     transform: translateX(-72rpx) rotate(-2deg);
   }
 }
-
 @keyframes card-swipe-right {
   from {
     opacity: 1;
@@ -610,392 +732,402 @@ export default {
     transform: translateX(72rpx) rotate(2deg);
   }
 }
-
 .card-content {
   flex: 1;
+  height: 0;
   min-height: 0;
-  height: auto;
-  padding: 34rpx 34rpx 16rpx;
+  padding: 16rpx 30rpx 24rpx;
 }
-
 .card-meta {
+  flex-shrink: 0;
+  padding: 16rpx 30rpx 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10rpx;
 }
-
+.card-index {
+  color: var(--kc-muted);
+  font-size: clamp(12px, 24rpx, 14px);
+}
 .card-actions {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 8rpx;
 }
-
-.card-index {
-  color: #829ab1;
-  font-size: 24rpx;
-}
-
-.card-title {
-  display: block;
-  margin-top: 18rpx;
-  color: #102a43;
-  font-size: 38rpx;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.conclusion,
-.content-section,
-.recall-section {
+.feedback-button, .recall-open-button {
   display: flex;
-  flex-direction: column;
-  margin-top: 28rpx;
-}
-
-.conclusion {
-  padding: 22rpx;
-  border-radius: 18rpx;
-  background: #e6f6ff;
-}
-
-.label {
-  color: #1976d2;
-  font-size: 24rpx;
-  font-weight: 700;
-}
-
-.conclusion-text {
-  margin-top: 10rpx;
-  color: #102a43;
-  font-size: 30rpx;
-  line-height: 1.55;
-}
-
-.body-text {
-  margin-top: 10rpx;
-  color: #334e68;
-  font-size: 27rpx;
-  line-height: 1.7;
-}
-
-.recall-section {
-  padding: 20rpx;
-  border-left: 8rpx solid #f6ad55;
-  background: #fffaf0;
-}
-
-.source {
-  flex-shrink: 0;
-  margin-top: auto;
-  padding: 12rpx 34rpx 28rpx;
-  overflow: hidden;
-  color: #829ab1;
-  font-size: 18rpx;
-  line-height: 1.3;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.source text {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.gesture-hint {
-  position: absolute;
-  right: 0;
-  bottom: 14rpx;
-  left: 0;
-  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 36rpx;
-  color: #9fb3c8;
-  font-size: 20rpx;
-}
-
-.feedback-button {
+  min-height: 48px;
   margin: 0;
-  padding: 0 18rpx;
-  border: 1rpx solid #d9eaf7;
-  border-radius: 26rpx;
-  background: #f4f9fd;
-  color: #627d98;
-  font-size: 22rpx;
-  line-height: 52rpx;
-}
-
-.feedback-button::after {
+  padding: 10rpx 16rpx;
   border: 0;
-}
-
-.recall-open-button {
-  margin: 0;
-  padding: 0 18rpx;
-  border: 1rpx solid #9ac8ec;
-  border-radius: 26rpx;
-  background: #e6f6ff;
-  color: #1976d2;
-  font-size: 22rpx;
-  line-height: 52rpx;
-}
-
-.recall-open-button::after {
-  border: 0;
-}
-
-.recall-mask {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 40;
-  display: flex;
-  align-items: stretch;
-  background: #f4f8fc;
-}
-
-.recall-sheet {
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 32rpx 32rpx 42rpx;
-  border-radius: 0;
-  background: #ffffff;
-}
-
-.recall-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20rpx;
-}
-
-.recall-eyebrow {
-  display: block;
-  color: #1976d2;
-  font-size: 18rpx;
-  font-weight: 700;
-  letter-spacing: 2rpx;
-}
-
-.recall-title {
-  display: block;
-  margin-top: 8rpx;
-  color: #102a43;
-  font-size: 38rpx;
-  font-weight: 700;
-}
-
-.recall-close {
-  flex-shrink: 0;
-  color: #1976d2;
-  font-size: 24rpx;
-}
-
-.recall-content {
-  flex: 1;
-  min-height: 0;
-  max-height: none;
-  margin-top: 28rpx;
-}
-
-.recall-question-label,
-.recall-question,
-.recall-prompt,
-.recall-input-hint,
-.recall-rating-title {
-  display: block;
-}
-
-.recall-question-label {
-  color: #829ab1;
-  font-size: 22rpx;
-}
-
-.recall-question {
-  margin-top: 12rpx;
-  color: #102a43;
-  font-size: 34rpx;
-  font-weight: 700;
+  border-radius: 14rpx;
+  font-size: clamp(12px, 25rpx, 15px);
   line-height: 1.4;
 }
-
-.recall-prompt {
-  margin-top: 14rpx;
-  padding: 14rpx 18rpx;
-  border-left: 8rpx solid #f6ad55;
-  background: #fffaf0;
-  color: #8a5a18;
-  font-size: 22rpx;
+.feedback-button {
+  min-width: 48px;
+  color: var(--kc-muted);
+  background: transparent;
+}
+.recall-open-button {
+  color: var(--kc-primary);
+  background: var(--kc-primary-soft);
+  font-weight: 600;
+}
+.card-title {
+  display: block;
+  margin: 0;
+  color: var(--kc-ink);
+  font-size: clamp(17px, 39rpx, 22px);
+  font-weight: 700;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
-
-.recall-answer-form {
-  margin-top: 24rpx;
+.conclusion, .content-section, .recall-section {
+  display: flex;
+  flex-direction: column;
+  margin-top: 30rpx;
 }
-
-.recall-input {
-  width: 100%;
-  min-height: 220rpx;
-  box-sizing: border-box;
-  padding: 20rpx;
-  border: 1rpx solid #c9d9e8;
+.conclusion {
+  padding: 24rpx;
   border-radius: 18rpx;
-  background: #f7fbfe;
-  color: #102a43;
-  font-size: 27rpx;
-  line-height: 1.6;
+  background: var(--kc-primary-soft);
 }
-
-.recall-input-hint {
+.label {
+  color: var(--kc-muted);
+  font-size: clamp(12px, 24rpx, 14px);
+  font-weight: 600;
+}
+.conclusion .label {
+  color: var(--kc-primary);
+}
+.conclusion-text {
+  margin-top: 12rpx;
+  color: var(--kc-ink);
+  font-size: clamp(14px, 32rpx, 18px);
+  font-weight: 500;
+  line-height: 1.75;
+}
+.body-text {
+  display: block;
   margin-top: 10rpx;
-  color: #829ab1;
-  font-size: 20rpx;
+  color: #354158;
+  font-size: clamp(13px, 30rpx, 17px);
+  line-height: 1.85;
+  overflow-wrap: anywhere;
 }
-
-.recall-submit-button {
-  width: 100%;
-}
-
-.recall-comparison {
-  margin-top: 24rpx;
-}
-
-.comparison-block {
-  padding: 20rpx;
+.recall-section {
+  margin-bottom: 20rpx;
+  padding: 22rpx;
   border-radius: 18rpx;
+  background: #faf4e9;
 }
-
-.my-answer-block {
-  background: #f4f7fb;
+.recall-section .label {
+  color: #8c5d25;
 }
-
-.correct-answer-block {
-  margin-top: 16rpx;
-  background: #eaf8ef;
-}
-
-.comparison-label {
-  display: block;
-  color: #486581;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-
-.comparison-text,
-.comparison-detail {
-  display: block;
-}
-
-.comparison-text {
-  margin-top: 10rpx;
-  color: #102a43;
-  font-size: 26rpx;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.correct-answer-text {
-  color: #276749;
-  font-weight: 700;
-}
-
-.comparison-detail {
-  margin-top: 10rpx;
-  color: #486581;
-  font-size: 23rpx;
+.source {
+  flex-shrink: 0;
+  padding: 18rpx 30rpx;
+  border-top: 1rpx solid #edf0f5;
+  color: var(--kc-muted);
+  font-size: clamp(12px, 22rpx, 13px);
   line-height: 1.55;
 }
-
-.recall-rating-title {
-  margin-top: 26rpx;
-  color: #102a43;
-  font-size: 25rpx;
+.source text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+.study-controls {
+  display: flex;
+  flex-shrink: 0;
+  gap: 12rpx;
+}
+.study-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  min-height: 48px;
+  margin: 0;
+  padding: 16rpx 12rpx;
+  border-radius: 18rpx;
+  font-size: clamp(12px, 27rpx, 16px);
+  line-height: 1.4;
+  font-weight: 600;
+}
+.previous-control {
+  flex: .9;
+  background: #e8ecf4;
+  color: #536078;
+}
+.forgot-control {
+  flex: 1;
+  background: #f4e9e7;
+  color: #944c3e;
+}
+.next-control {
+  flex: 1.25;
+  color: #ffffff;
+  background: var(--kc-primary);
+}
+.gesture-hint {
+  display: block;
+  flex-shrink: 0;
+  padding: 16rpx 0 4rpx;
+  color: var(--kc-muted);
+  font-size: clamp(12px, 22rpx, 13px);
+  line-height: 1.45;
+  text-align: center;
+}
+.recall-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  background: var(--kc-surface);
+}
+.recall-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  margin: 0 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 28rpx 36rpx calc(28rpx + env(safe-area-inset-bottom));
+  background: var(--kc-surface);
+}
+.recall-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 18rpx;
+}
+.recall-eyebrow {
+  display: block;
+  color: var(--kc-muted);
+  font-size: clamp(12px, 23rpx, 13px);
+}
+.recall-title {
+  display: block;
+  margin-top: 6rpx;
+  font-size: clamp(17px, 39rpx, 22px);
   font-weight: 700;
 }
-
+.recall-close {
+  flex-shrink: 0;
+  min-height: 48px;
+  min-width: 48px;
+  margin: 0;
+  padding: 14rpx;
+  border-radius: 16rpx;
+  background: var(--kc-background);
+  color: var(--kc-muted);
+  font-size: clamp(12px, 26rpx, 15px);
+  line-height: 1.4;
+}
+.recall-content {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  margin-top: 34rpx;
+}
+.recall-question-label, .recall-question, .recall-prompt, .recall-input-hint, .recall-rating-title {
+  display: block;
+}
+.recall-question-label {
+  color: var(--kc-primary);
+  font-size: clamp(12px, 25rpx, 15px);
+  font-weight: 600;
+}
+.recall-question {
+  margin-top: 16rpx;
+  font-size: clamp(16px, 37rpx, 21px);
+  font-weight: 700;
+  line-height: 1.6;
+}
+.recall-prompt {
+  margin-top: 20rpx;
+  padding: 22rpx;
+  border-radius: 18rpx;
+  background: #faf4e9;
+  color: #785b32;
+  font-size: clamp(12px, 27rpx, 16px);
+  line-height: 1.7;
+}
+.recall-answer-form {
+  margin-top: 26rpx;
+}
+.recall-input {
+  width: 100%;
+  min-height: 260rpx;
+  padding: 24rpx;
+  border: 1rpx solid #bdc7db;
+  border-radius: 20rpx;
+  background: #f8f9fc;
+  color: var(--kc-ink);
+  font-size: clamp(13px, 30rpx, 17px);
+  line-height: 1.8;
+}
+.recall-input-hint {
+  margin-top: 16rpx;
+  color: var(--kc-muted);
+  font-size: clamp(12px, 24rpx, 14px);
+}
+.recall-submit-button {
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+.recall-comparison {
+  margin-top: 28rpx;
+}
+.comparison-block {
+  padding: 26rpx;
+  border-radius: 20rpx;
+}
+.my-answer-block {
+  background: var(--kc-background);
+}
+.correct-answer-block {
+  margin-top: 20rpx;
+  background: #edf5f0;
+}
+.comparison-label {
+  display: block;
+  color: var(--kc-muted);
+  font-size: clamp(12px, 25rpx, 15px);
+  font-weight: 600;
+}
+.comparison-text, .comparison-detail {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--kc-ink);
+  font-size: clamp(13px, 29rpx, 17px);
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+.correct-answer-text {
+  color: #24654e;
+  font-weight: 600;
+}
+.comparison-detail {
+  color: #4d6057;
+  font-size: clamp(12px, 27rpx, 16px);
+}
+.recall-rating-title {
+  margin-top: 30rpx;
+  font-size: clamp(12px, 28rpx, 16px);
+  font-weight: 600;
+}
 .recall-rating-list {
   display: flex;
   gap: 12rpx;
-  margin-top: 16rpx;
+  margin: 20rpx 0;
 }
-
 .recall-rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
+  min-height: 48px;
   margin: 0;
-  padding: 0 10rpx;
+  padding: 16rpx 8rpx;
   border: 0;
   border-radius: 16rpx;
-  font-size: 22rpx;
-  line-height: 76rpx;
-}
-
-.recall-rating::after {
-  border: 0;
-}
-
-.recall-rating-remembered {
-  background: #d9f2e2;
-  color: #276749;
-}
-
-.recall-rating-partial {
-  background: #fff1cf;
-  color: #8a5a18;
-}
-
-.recall-rating-forgot {
-  background: #fde4e4;
-  color: #9b2c2c;
-}
-
-.completion-panel {
-  margin-top: 96rpx;
-  text-align: center;
-}
-
-.completion-eyebrow {
-  display: block;
-  color: #1976d2;
-  font-size: 26rpx;
-}
-
-.completion-title {
-  display: block;
-  margin-top: 20rpx;
-  color: #102a43;
-  font-size: 40rpx;
-  font-weight: 700;
+  font-size: clamp(12px, 27rpx, 16px);
   line-height: 1.4;
 }
-
-.completion-summary {
+.recall-rating-remembered {
+  background: #e2f0e8;
+  color: #24654e;
+}
+.recall-rating-partial {
+  background: #f6eedc;
+  color: #805c21;
+}
+.recall-rating-forgot {
+  background: #f4e9e7;
+  color: #944c3e;
+}
+.completion-panel, .empty-panel {
+  margin: auto 0;
+  padding: 46rpx 32rpx;
+}
+.completion-eyebrow {
+  display: block;
+  color: var(--kc-primary);
+  font-size: clamp(12px, 27rpx, 16px);
+}
+.completion-title, .empty-title {
+  display: block;
+  margin-top: 16rpx;
+  font-size: clamp(17px, 38rpx, 22px);
+  font-weight: 700;
+  line-height: 1.5;
+}
+.completion-summary, .empty-panel .muted {
   display: block;
   margin-top: 20rpx;
-  color: #2f855a;
-  font-size: 28rpx;
-  line-height: 1.6;
+  color: var(--kc-muted);
+  font-size: clamp(12px, 28rpx, 16px);
+  line-height: 1.75;
 }
-
 .completion-button {
-  margin-top: 36rpx;
+  margin-top: 32rpx;
 }
-
-.empty-panel {
-  margin-top: 80rpx;
-  text-align: center;
-}
-
-.empty-title {
-  display: block;
-  color: #102a43;
-  font-size: 34rpx;
-  font-weight: 700;
+@media (max-height: 500px) and (min-width: 600px) {
+  .study-session {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 132px;
+    grid-template-rows: auto 3px minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 8px;
+    padding-top: 4px;
+  }
+  .session-heading, .session-progress {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  .card-viewport {
+    grid-column: 1;
+    grid-row: 3;
+    margin: 0;
+  }
+  .study-controls {
+    grid-column: 2;
+    grid-row: 3;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+  .study-control {
+    flex: none;
+  }
+  .gesture-hint {
+    display: none;
+  }
+  .knowledge-card {
+    border-radius: 18px;
+  }
+  .card-meta {
+    padding: 6px 16px 0;
+  }
+  .card-content {
+    padding: 8px 16px 16px;
+  }
+  .source {
+    padding: 6px 16px;
+  }
+  .source text {
+    -webkit-line-clamp: 1;
+  }
 }
 </style>
